@@ -1,0 +1,3668 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Project Usage Guide</title>
+  <meta name="description"
+    content="Architecture, dataset, models and manual re-run instructions for the BTCUSDT 15m short-term trend prediction project.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <style>
+    /* ===========================================================================
+   PROJECT_USAGE.css - stylesheet for PROJECT_USAGE.html
+   BTCUSDT 15m short-term trend prediction - usage & architecture guide.
+
+   Tokens are shared verbatim with DASHBOARD_INDICATORS.html and, through it,
+   with web/src/styles.css, so a colour named here is the same colour the
+   dashboard draws. Two families, deliberately separate:
+
+     * page chrome  - follows the reader's theme (light / dark)
+     * instrument   - NEVER changes, because it describes a different screen.
+                      The dashboard's series colours are facts about the
+                      dashboard, so a swatch that shifted with the reader's
+                      theme would stop being a key.
+   =========================================================================== */
+
+    :root {
+      color-scheme: light;
+
+      --ground: #f6f7f9;
+      --surface: #ffffff;
+      --sunken: #eceef2;
+      --ink: #14181f;
+      --ink-2: #414a5a;
+      --muted: #6b7486;
+      --rule: #dde1e8;
+      --rule-2: #eef0f4;
+      --accent: #5b3fd6;
+      --accent-s: #efeaff;
+
+      /* The dashboard's own tokens. Fixed in both themes. */
+      --up: #26a69a;
+      --down: #ef5350;
+      --neutral: #d9a441;
+      --active: #f0a13a;
+      --quiet: #5b7fb5;
+      --model: #7c5cff;
+      --naive: #6b7688;
+
+      /* Semantic callout tints (theme-dependent, unlike the instrument colours) */
+      --ok-bg: #e8f6f3;
+      --ok-line: #26a69a;
+      --bad-bg: #fdeceb;
+      --bad-line: #ef5350;
+      --warn-bg: #fdf4e3;
+      --warn-line: #d9a441;
+      --note-bg: #f1efff;
+      --note-line: #7c5cff;
+
+      --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+      --max: 1120px;
+      --gut: 16px;
+      --radius: 10px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --ground: #0f131c;
+        --surface: #161b26;
+        --sunken: #1b2130;
+        --ink: #e5e9f1;
+        --ink-2: #b6bece;
+        --muted: #868fa3;
+        --rule: #262d3d;
+        --rule-2: #1e2534;
+        --accent: #a08cff;
+        --accent-s: #241f3d;
+
+        --ok-bg: #14261f;
+        --ok-line: #2f8f7d;
+        --bad-bg: #2a1717;
+        --bad-line: #b04a48;
+        --warn-bg: #2a2113;
+        --warn-line: #a67c2b;
+        --note-bg: #1d1a33;
+        --note-line: #7c5cff;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --ground: #0f131c;
+      --surface: #161b26;
+      --sunken: #1b2130;
+      --ink: #e5e9f1;
+      --ink-2: #b6bece;
+      --muted: #868fa3;
+      --rule: #262d3d;
+      --rule-2: #1e2534;
+      --accent: #a08cff;
+      --accent-s: #241f3d;
+
+      --ok-bg: #14261f;
+      --ok-line: #2f8f7d;
+      --bad-bg: #2a1717;
+      --bad-line: #b04a48;
+      --warn-bg: #2a2113;
+      --warn-line: #a67c2b;
+      --note-bg: #1d1a33;
+      --note-line: #7c5cff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--ground);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.62;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 var(--gut) 96px;
+    }
+
+    /* ------------------------------------------------------------------ type */
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      line-height: 1.25;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    h1 {
+      font-size: clamp(26px, 4.2vw, 40px);
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      font-size: clamp(19px, 2.4vw, 25px);
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-size: 16px;
+      margin-top: 26px;
+    }
+
+    h4 {
+      font-size: 14px;
+      margin-top: 20px;
+      color: var(--ink-2);
+    }
+
+    p {
+      margin: 12px 0;
+    }
+
+    p.lede {
+      font-size: 17px;
+      color: var(--ink-2);
+      max-width: 68ch;
+    }
+
+    p.dim,
+    .dim {
+      color: var(--muted);
+    }
+
+    small {
+      font-size: 12.5px;
+    }
+
+    strong {
+      font-weight: 600;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    a {
+      color: var(--accent);
+      text-underline-offset: 3px;
+    }
+
+    code,
+    kbd,
+    pre,
+    .mono {
+      font-family: var(--mono);
+    }
+
+    code {
+      font-size: 0.88em;
+      background: var(--sunken);
+      border: 1px solid var(--rule-2);
+      border-radius: 5px;
+      padding: 1px 5px;
+      word-break: break-word;
+    }
+
+    kbd {
+      font-size: 0.82em;
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      padding: 1px 6px;
+      color: var(--ink);
+    }
+
+    pre {
+      margin: 14px 0;
+      padding: 14px 16px;
+      background: var(--sunken);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-size: 12.6px;
+      line-height: 1.65;
+    }
+
+    pre code {
+      background: none;
+      border: 0;
+      padding: 0;
+      font-size: inherit;
+      white-space: pre;
+      word-break: normal;
+    }
+
+    pre .c {
+      color: var(--muted);
+    }
+
+    /* comment */
+    pre .k {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* command / key */
+
+    /* --------------------------------------------------------------- layout */
+
+    hr.rule {
+      border: 0;
+      border-top: 1px solid var(--rule);
+      margin: 52px 0 44px;
+    }
+
+    section {
+      margin: 0 0 8px;
+    }
+
+    .sec-head {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin: 0 0 6px;
+      padding-top: 4px;
+    }
+
+    .sec-head .num {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-s);
+      border-radius: 6px;
+      padding: 3px 7px;
+      flex: none;
+      transform: translateY(-2px);
+    }
+
+    .sec-head h2 {
+      flex: 1 1 auto;
+    }
+
+    .sec-sub {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 18px 0;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .g2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .g3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .g4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    @media (max-width: 900px) {
+
+      .g3,
+      .g4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+
+      .g2,
+      .g3,
+      .g4 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    /* ---------------------------------------------------------------- header */
+
+    .hero {
+      padding: 56px 0 30px;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 34px;
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+    }
+
+    .eyebrow b {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 26px 0 0;
+    }
+
+    .stat {
+      background: var(--surface);
+      padding: 13px 15px;
+    }
+
+    .stat .v {
+      font-family: var(--mono);
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      display: block;
+      line-height: 1.25;
+    }
+
+    .stat .l {
+      font-size: 11.5px;
+      color: var(--muted);
+      display: block;
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+
+    .stat .v.up {
+      color: var(--up);
+    }
+
+    .stat .v.down {
+      color: var(--down);
+    }
+
+    .stat .v.acc {
+      color: var(--accent);
+    }
+
+    /* ------------------------------------------------------------------- toc */
+
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      padding: 6px 4px;
+      margin: 0 0 44px;
+    }
+
+    .toc ol {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      columns: 2;
+      column-gap: 4px;
+    }
+
+    @media (max-width: 700px) {
+      .toc ol {
+        columns: 1;
+      }
+    }
+
+    .toc li {
+      break-inside: avoid;
+    }
+
+    .toc a {
+      display: flex;
+      gap: 10px;
+      padding: 6px 12px;
+      border-radius: 7px;
+      text-decoration: none;
+      color: var(--ink-2);
+      font-size: 14px;
+    }
+
+    .toc a:hover {
+      background: var(--sunken);
+      color: var(--ink);
+    }
+
+    .toc .n {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--muted);
+      flex: none;
+      width: 20px;
+      padding-top: 2px;
+    }
+
+    /* ----------------------------------------------------------------- cards */
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin: 14px 0;
+    }
+
+    .card.tight {
+      padding: 13px 15px;
+    }
+
+    .card> :first-child {
+      margin-top: 0;
+    }
+
+    .card> :last-child {
+      margin-bottom: 0;
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .card .tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    /* ------------------------------------------------------------- callouts */
+
+    .callout {
+      border: 1px solid var(--rule);
+      border-left-width: 3px;
+      border-radius: var(--radius);
+      padding: 13px 16px;
+      margin: 16px 0;
+      background: var(--surface);
+    }
+
+    .callout> :first-child {
+      margin-top: 0;
+    }
+
+    .callout> :last-child {
+      margin-bottom: 0;
+    }
+
+    .callout .h {
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0.01em;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .callout p {
+      font-size: 14px;
+    }
+
+    .callout.note {
+      background: var(--note-bg);
+      border-left-color: var(--note-line);
+    }
+
+    .callout.note .h {
+      color: var(--note-line);
+    }
+
+    .callout.ok {
+      background: var(--ok-bg);
+      border-left-color: var(--ok-line);
+    }
+
+    .callout.ok .h {
+      color: var(--ok-line);
+    }
+
+    .callout.warn {
+      background: var(--warn-bg);
+      border-left-color: var(--warn-line);
+    }
+
+    .callout.warn .h {
+      color: var(--warn-line);
+    }
+
+    .callout.bad {
+      background: var(--bad-bg);
+      border-left-color: var(--bad-line);
+    }
+
+    .callout.bad .h {
+      color: var(--bad-line);
+    }
+
+    /* ---------------------------------------------------------------- tables */
+
+    .scroll {
+      overflow-x: auto;
+      margin: 14px 0;
+      border-radius: var(--radius);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13.5px;
+      background: var(--surface);
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--rule-2);
+      vertical-align: top;
+    }
+
+    thead th {
+      border-bottom: 1px solid var(--rule);
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+      background: var(--surface);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr:hover {
+      background: var(--sunken);
+    }
+
+    td.key,
+    th.key {
+      color: var(--ink-2);
+    }
+
+    td.num,
+    th.num {
+      font-family: var(--mono);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    td.mono {
+      font-family: var(--mono);
+      font-size: 12.5px;
+    }
+
+    tfoot td {
+      font-weight: 600;
+      border-top: 1px solid var(--rule);
+    }
+
+    .pos {
+      color: var(--up);
+    }
+
+    .neg {
+      color: var(--down);
+    }
+
+    .mid {
+      color: var(--neutral);
+    }
+
+    .best {
+      font-weight: 700;
+    }
+
+    caption {
+      caption-side: bottom;
+      text-align: left;
+      color: var(--muted);
+      font-size: 12.5px;
+      padding: 8px 2px 0;
+    }
+
+    /* ------------------------------------------------------------ flow chart */
+
+    .flow {
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      margin: 16px 0;
+    }
+
+    .flow-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: 8px;
+      margin: 0 0 10px;
+    }
+
+    .flow-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .node {
+      flex: 1 1 120px;
+      min-width: 0;
+      background: var(--sunken);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      padding: 9px 11px;
+    }
+
+    .node b {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .node i {
+      display: block;
+      font-family: var(--mono);
+      font-style: normal;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+      word-break: break-word;
+    }
+
+    .node.acc {
+      border-color: var(--accent);
+      background: var(--accent-s);
+    }
+
+    .node.acc i {
+      color: var(--accent);
+    }
+
+    .arrow {
+      flex: none;
+      align-self: center;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 0 1px;
+    }
+
+    .flow-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      margin: 4px 0 10px;
+    }
+
+    @media (max-width: 760px) {
+      .flow-row {
+        flex-direction: column;
+      }
+
+      .arrow {
+        transform: rotate(90deg);
+        align-self: flex-start;
+        padding-left: 14px;
+      }
+    }
+
+    /* ---------------------------------------------------------------- steps */
+
+    .steps {
+      counter-reset: s;
+      margin: 16px 0;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      gap: 0 14px;
+      padding: 14px 0;
+      border-top: 1px solid var(--rule-2);
+    }
+
+    .steps>.step:first-child {
+      border-top: 1px solid var(--rule);
+    }
+
+    .step::before {
+      counter-increment: s;
+      content: counter(s, decimal-leading-zero);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      padding-top: 3px;
+    }
+
+    .step-body {
+      min-width: 0;
+    }
+
+    .step-body h3 {
+      margin: 0 0 2px;
+      font-size: 15px;
+    }
+
+    .step-body pre {
+      margin: 10px 0;
+    }
+
+    .step-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 6px 0 2px;
+    }
+
+    .chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid var(--rule);
+      background: var(--surface);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .chip.tf {
+      border-color: var(--model);
+      color: var(--model);
+    }
+
+    .chip.net {
+      border-color: var(--quiet);
+      color: var(--quiet);
+    }
+
+    .chip.fast {
+      border-color: var(--up);
+      color: var(--up);
+    }
+
+    .chip.slow {
+      border-color: var(--neutral);
+      color: var(--neutral);
+    }
+
+    .chip.acc {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* -------------------------------------------------------------- key list */
+
+    .kv {
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    .kv div {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      gap: 12px;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--rule-2);
+    }
+
+    .kv div:last-child {
+      border-bottom: 0;
+    }
+
+    .kv dt,
+    .kv .k {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--ink-2);
+    }
+
+    @media (max-width: 620px) {
+      .kv div {
+        grid-template-columns: 1fr;
+        gap: 2px;
+      }
+    }
+
+    ul,
+    ol {
+      padding-left: 22px;
+      margin: 12px 0;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    ul.tight li,
+    ol.tight li {
+      margin: 2px 0;
+    }
+
+    ul.plain {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    ul.plain li {
+      padding-left: 20px;
+      position: relative;
+    }
+
+    ul.plain li::before {
+      content: "—";
+      position: absolute;
+      left: 0;
+      color: var(--muted);
+    }
+
+    .two-col {
+      columns: 2;
+      column-gap: 28px;
+    }
+
+    @media (max-width: 700px) {
+      .two-col {
+        columns: 1;
+      }
+    }
+
+    /* ---------------------------------------------------------------- footer */
+
+    .foot {
+      border-top: 1px solid var(--rule);
+      margin-top: 56px;
+      padding-top: 22px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .foot .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    .toplink {
+      font-family: var(--mono);
+      font-size: 12px;
+      text-decoration: none;
+    }
+
+    /* ----------------------------------------------------------------- print */
+
+    @media print {
+      :root {
+        --ground: #fff;
+        --surface: #fff;
+        --ink: #000;
+      }
+
+      body {
+        font-size: 11pt;
+      }
+
+      .toc {
+        display: none;
+      }
+
+      .card,
+      table,
+      pre,
+      .flow {
+        break-inside: avoid;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .toplink {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap" id="top">
+
+    <!-- ======================================================== hero -->
+    <header class="hero">
+      <p class="eyebrow">
+        <span><b>BTCUSDT</b> · 15m · Binance spot</span>
+        <span>GPU-free · CPU only</span>
+        <span>Last build 2026-09-28</span>
+      </p>
+      <h1>Short-Term Trend Prediction<br>Usage &amp; Architecture Guide</h1>
+      <p class="lede">
+        A leakage-audited data pipeline that turns nine years of public Binance
+        15-minute candles into a Colab-ready dataset, trains a small recurrent
+        network on it, and serves that network to two live dashboards. This document
+        is the whole project: what it is, how the pieces fit, what it measured, and
+        exactly how to run every part of it again by hand.
+      </p>
+
+      <div class="callout bad">
+        <span class="h">No profitability or trading-edge claim is made anywhere in this project.</span>
+        <p>
+          Every number below is a <em>measurement</em> on one historical test period,
+          printed next to the naive baseline it has to beat. Nothing here is
+          investment advice. There is no backtest — fees, slippage, funding and
+          regime change all sit between a directional call and a P&amp;L. A
+          directional accuracy above 33% on a three-class problem is not evidence of
+          a profitable strategy. Read the macro-F1 and the per-class recalls, not the
+          headline accuracy.
+        </p>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><span class="v">315,063</span><span class="l">dataset rows × 72 columns</span></div>
+        <div class="stat"><span class="v">49</span><span class="l">features, in 11 groups</span></div>
+        <div class="stat"><span class="v">64</span><span class="l">candle lookback (16 hours)</span></div>
+        <div class="stat"><span class="v">312,165</span><span class="l">valid sequence windows</span></div>
+        <div class="stat"><span class="v acc">24/24</span><span class="l">leakage checks passing</span></div>
+        <div class="stat"><span class="v up">0.648</span><span class="l">activity head accuracy (test)</span></div>
+        <div class="stat"><span class="v mid">0.424</span><span class="l">direction macro-F1 (test)</span></div>
+        <div class="stat"><span class="v down"></span><span class="l">return head vs. predicting the mean</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ======================================================== toc -->
+    <nav class="toc" aria-label="Contents">
+      <ol>
+        <li><a href="#s1"><span class="n">01</span><span>What this project is — and is not</span></a></li>
+        <li><a href="#s2"><span class="n">02</span><span>Architecture</span></a></li>
+        <li><a href="#s3"><span class="n">03</span><span>Repository map</span></a></li>
+        <li><a href="#s4"><span class="n">04</span><span>How the dataset is built</span></a></li>
+        <li><a href="#s5"><span class="n">05</span><span>How leakage is prevented</span></a></li>
+        <li><a href="#s6"><span class="n">06</span><span>The model</span></a></li>
+        <li><a href="#s7"><span class="n">07</span><span>Measured results, including the failures</span></a></li>
+        <li><a href="#s8"><span class="n">08</span><span>The four interfaces</span></a></li>
+        <li><a href="#s9"><span class="n">09</span><span>Running the project again, manually</span></a></li>
+        <li><a href="#s10"><span class="n">10</span><span>Configuration reference</span></a></li>
+        <li><a href="#s11"><span class="n">11</span><span>Environment &amp; reproducibility</span></a></li>
+        <li><a href="#s12"><span class="n">12</span><span>Limitations and honest caveats</span></a></li>
+        <li><a href="#s13"><span class="n">13</span><span>Glossary</span></a></li>
+      </ol>
+    </nav>
+
+    <!-- ======================================================== 01 -->
+    <hr class="rule">
+    <section id="s1">
+      <div class="sec-head"><span class="num">01</span>
+        <h2>What this project is — and is not</h2>
+      </div>
+      <p class="sec-sub">The scope boundary is deliberate. Almost everything the project refuses to do is a thing that
+        would have made its numbers look better.</p>
+
+      <div class="grid g2">
+        <div class="card">
+          <span class="tag">It is</span>
+          <ul class="tight">
+            <li>A <strong>data pipeline</strong>. It downloads the full public BTCUSDT 15-minute history from Binance,
+              validates it, engineers features, builds targets, splits it chronologically, scales it, and writes a
+              dataset.</li>
+            <li><strong>Explicitly leakage-audited.</strong> 24 automated checks re-run the real feature, target, scaler
+              and threshold code against deliberately corrupted data and assert that nothing looks forward in time.</li>
+            <li><strong>Honest about gaps.</strong> Missing candles are reported and segmented around. They are never
+              interpolated or forward-filled.</li>
+            <li><strong>Trained, and served.</strong> A 3-seed GRU ensemble is trained on the full split, then read by a
+              terminal dashboard and by a React dashboard over a JSON/SSE API.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="tag">It is not</span>
+          <ul class="tight">
+            <li><strong>A trading system.</strong> No order execution, no risk controls, no position sizing, no
+              scheduler. Both dashboards <em>read</em> the market; neither can act on it.</li>
+            <li><strong>A backtest.</strong> Notebooks 04 and 05 contain an intentionally empty scaffold describing what
+              would have to be built. No backtest result is produced or claimed.</li>
+            <li><strong>A performance claim.</strong> One asset, one interval, one venue, one test period.</li>
+            <li><strong>A service.</strong> The API is bound to localhost, has no authentication and is documented as a
+              local research tool.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- <h3>The three questions the network answers</h3>
+      <p>One shared recurrent trunk feeds three heads. They are trained jointly, and they are <em>not</em> equally good
+        — the difference is the most important thing in this document.</p> -->
+
+      <div class="scroll">
+        <!-- <table>
+          <thead>
+            <tr>
+              <th>Head</th>
+              <th>The question</th>
+              <th>Output</th>
+              <th>Status on held-out test data</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key"><strong>direction</strong></td>
+              <td>Which way over the next 15–90 minutes?</td>
+              <td>6 × {DOWN, NEUTRAL, UP}</td>
+              <td><span class="mid">Real but weak.</span> Macro-F1 0.424 against a 0.226 majority-class baseline — a
+                wide margin over the baseline, and still missing most directional moves. Heavily NEUTRAL-biased.</td>
+            </tr>
+            <tr>
+              <td class="key"><strong>return</strong></td>
+              <td>What percentage return over the next 15–90 minutes?</td>
+              <td>6 continuous values, percent</td>
+              <td><span class="neg">Fails.</span> Worse than predicting the mean at 6 of 6 horizons. Trained as an
+                auxiliary task to shape the trunk; not a usable forecast, and reported as such.</td>
+            </tr>
+            <tr>
+              <td class="key"><strong>activity</strong> (regime)</td>
+              <td>Will the market be busier or quieter than its own last 24 hours?</td>
+              <td>4 × {QUIET, ACTIVE}</td>
+              <td><span class="pos">Works.</span> 0.648 mean accuracy against a 0.498 baseline. This is the headline
+                number the project is willing to put its name to — and it is a statement about <em>volatility</em>, not
+                direction.</td>
+            </tr>
+          </tbody>
+        </table> -->
+      </div>
+    </section>
+
+    <!-- ======================================================== 02 -->
+    <hr class="rule">
+    <section id="s2">
+      <div class="sec-head"><span class="num">02</span>
+        <h2>Architecture</h2>
+      </div>
+      <p class="sec-sub">One build-time plane that produces files, and one run-time plane that reads them. Nothing on
+        the run-time side ever refits anything.</p>
+
+      <h3>Build-time: the eight pipeline steps</h3>
+      <p>All of this is <code>python src/pipeline.py</code>, orchestrated from <code>src/config.py</code>. It is pure
+        numpy / pandas / scikit-learn and imports no deep-learning framework at all.</p>
+
+      <div class="flow">
+        <div class="flow-label">Offline — produces data/final/</div>
+        <div class="flow-row">
+          <div class="node"><b>1 · Acquire</b><i>data_download.py</i></div>
+          <div class="arrow">→</div>
+          <div class="node"><b>2 · Clean &amp; gap audit</b><i>preprocessing.py</i></div>
+          <div class="arrow">→</div>
+          <div class="node"><b>3 · 49 features</b><i>features.py</i></div>
+          <div class="arrow">→</div>
+          <div class="node"><b>4 · Targets</b><i>targets.py + regime.py</i></div>
+        </div>
+        <div class="flow-row">
+          <div class="node"><b>5 · Warmup &amp; NaN drop</b><i>pipeline.py</i></div>
+          <div class="arrow">→</div>
+          <div class="node"><b>6 · Windows + split</b><i>sequences.py</i></div>
+          <div class="arrow">→</div>
+          <div class="node"><b>7 · Scale &amp; thresholds</b><i>sequences.py · train only</i></div>
+          <div class="arrow">→</div>
+          <div class="node acc"><b>8 · Write .npy</b><i>data/final/</i></div>
+        </div>
+        <div class="flow-label" style="margin-top:16px">Offline — training</div>
+        <div class="flow-row">
+          <div class="node acc"><b>train.py</b><i>3 seeds · GRU + LSTM</i></div>
+          <div class="arrow">→</div>
+          <div class="node"><b>models/*.keras</b><i>one checkpoint per seed</i></div>
+          <div class="arrow">→</div>
+          <div class="node"><b>inference_bundle.json</b><i>members, thresholds, scalers</i></div>
+          <div class="arrow">→</div>
+          <div class="node"><b>train_metrics.json</b><i>+ eval_summary.json</i></div>
+        </div>
+      </div>
+
+      <h3>Run-time: one model, four readers</h3>
+      <p>Every run-time path shares the <em>same</em> input function — <code>inference.build_live_input()</code> — which
+        fetches the newest candles and pushes them through the identical cleaning → features → frozen-scaler code the
+        model was trained on. That is the whole point: a second, "simplified" feature implementation for inference is a
+        classic source of silent train/serve skew.</p>
+
+      <div class="flow">
+        <div class="flow-label">Online — reads the market, never writes to it</div>
+        <div class="flow-row">
+          <div class="node"><b>Binance REST</b><i>newest 15m candles</i></div>
+          <div class="arrow">→</div>
+          <div class="node"><b>build_live_input()</b><i>inference.py · TF-free</i></div>
+          <div class="arrow">→</div>
+          <div class="node acc"><b>scaled (1, 64, 49)</b><i>scaler.pkl, loaded not refit</i></div>
+          <div class="arrow">→</div>
+          <div class="node"><b>ensemble</b><i>mean of 3 softmaxes</i></div>
+        </div>
+        <div class="flow-row">
+          <div class="node"><b>Terminal TUI</b><i>dashboard.py · rich</i></div>
+          <div class="arrow">→</div>
+          <div class="node"><b>The Dashboard object</b><i>fetch · predict · issue · resolve</i></div>
+          <div class="arrow">←</div>
+          <div class="node"><b>FastAPI + SSE</b><i>server.py</i></div>
+          <div class="arrow">←</div>
+          <div class="node"><b>React app</b><i>web/ · simple + advanced</i></div>
+        </div>
+        <div class="flow-row">
+          <div class="node"><b>JSON track record</b><i>models/dashboard_log_*.json</i></div>
+          <div class="arrow">+</div>
+          <div class="node"><b>SQLite projection store</b><i>models/predictions.db</i></div>
+          <div class="arrow">→</div>
+          <div class="node"><b>live scorecards</b><i>scored with the frozen thresholds</i></div>
+        </div>
+      </div>
+
+      <div class="callout note">
+        <span class="h">The API holds no prediction logic on purpose</span>
+        <p>
+          <code>src/server.py</code> contains no prediction, scoring or labelling code.
+          It drives the same <code>Dashboard</code> object the terminal UI drives and
+          serialises the result. A React panel that computed its own accuracy would
+          be describing a different model from the one the scorecard describes, so
+          there is exactly one implementation of every rule and it is the Python one.
+        </p>
+      </div>
+
+      <h3>Layer responsibilities</h3>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Layer</th>
+              <th>Modules</th>
+              <th>Needs TensorFlow?</th>
+              <th>Produces</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">Configuration</td>
+              <td class="mono">config.py</td>
+              <td>No</td>
+              <td>The single source of truth for every knob</td>
+            </tr>
+            <tr>
+              <td class="key">Acquisition</td>
+              <td class="mono">data_download.py</td>
+              <td>No</td>
+              <td><code>data/raw/btcusdt_15m_raw.csv</code></td>
+            </tr>
+            <tr>
+              <td class="key">Cleaning</td>
+              <td class="mono">preprocessing.py</td>
+              <td>No</td>
+              <td>Continuity report, <code>segment_id</code></td>
+            </tr>
+            <tr>
+              <td class="key">Features</td>
+              <td class="mono">features.py</td>
+              <td>No</td>
+              <td>49 backward-looking columns</td>
+            </tr>
+            <tr>
+              <td class="key">Targets</td>
+              <td class="mono">targets.py · regime.py</td>
+              <td>No</td>
+              <td>6 returns, 6 direction labels, 4 activity labels</td>
+            </tr>
+            <tr>
+              <td class="key">Sequence geometry</td>
+              <td class="mono">sequences.py</td>
+              <td>No</td>
+              <td>Zero-copy windows, chronological split, batcher</td>
+            </tr>
+            <tr>
+              <td class="key">Orchestration</td>
+              <td class="mono">pipeline.py</td>
+              <td>No</td>
+              <td><code>data/final/</code> in full</td>
+            </tr>
+            <tr>
+              <td class="key">Verification</td>
+              <td class="mono">audit_leakage.py</td>
+              <td>No</td>
+              <td>24 pass/fail checks, exit code 0 only if all pass</td>
+            </tr>
+            <tr>
+              <td class="key">Training</td>
+              <td class="mono">train.py</td>
+              <td><strong>Yes</strong></td>
+              <td><code>.keras</code> files + metrics</td>
+            </tr>
+            <tr>
+              <td class="key">Evaluation</td>
+              <td class="mono">evaluate.py</td>
+              <td><strong>Yes</strong></td>
+              <td>Validation + test tables, calibration, sweep</td>
+            </tr>
+            <tr>
+              <td class="key">Inference</td>
+              <td class="mono">inference.py</td>
+              <td>Only in <code>load_model()</code></td>
+              <td>A six-horizon read on the newest candles</td>
+            </tr>
+            <tr>
+              <td class="key">Terminal UI</td>
+              <td class="mono">dashboard.py</td>
+              <td><strong>Yes</strong></td>
+              <td>A live TUI + a JSON track record</td>
+            </tr>
+            <tr>
+              <td class="key">HTTP API</td>
+              <td class="mono">server.py</td>
+              <td><strong>Yes</strong></td>
+              <td>JSON + Server-Sent Events</td>
+            </tr>
+            <tr>
+              <td class="key">Store</td>
+              <td class="mono">predstore.py</td>
+              <td>No</td>
+              <td>SQLite (stdlib <code>sqlite3</code>)</td>
+            </tr>
+            <tr>
+              <td class="key">Browser UI</td>
+              <td class="mono">web/</td>
+              <td>No (Node instead)</td>
+              <td>React 18 + Vite dashboard</td>
+            </tr>
+            <tr>
+              <td class="key">Chart</td>
+              <td class="mono">plot_trend.py</td>
+              <td><strong>Yes</strong> (+ matplotlib)</td>
+              <td><code>charts/actual_vs_predicted.png</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======================================================== 03 -->
+    <hr class="rule">
+    <section id="s3">
+      <div class="sec-head"><span class="num">03</span>
+        <h2>Repository map</h2>
+      </div>
+      <p class="sec-sub">Every file, and why it exists.</p>
+
+      <h3>src/ — the code</h3>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Job</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">config.py</td>
+              <td>Symbol, interval, feature windows, <code>LOOKBACK</code>, <code>HORIZONS</code>, split fractions,
+                <code>PURGE_SAMPLES</code>, scaler settings, threshold mode, regime settings, seeds, output paths.
+                <strong>No other module hard-codes a constant</strong> — change a knob here and the whole pipeline, the
+                notebooks and inference follow.</td>
+            </tr>
+            <tr>
+              <td class="mono">data_download.py</td>
+              <td>Downloads Binance data. Prefers the <code>data.binance.vision</code> bulk archives (one request per
+                month instead of ~2,900 paginated REST calls), falls back to daily archives for the open month and to
+                REST <code>/api/v3/klines</code> for the newest candles. Handles retries with backoff, pagination,
+                de-duplication and Binance's millisecond → microsecond timestamp switch at the 2025-01 archive.</td>
+            </tr>
+            <tr>
+              <td class="mono">preprocessing.py</td>
+              <td>Schema type-checks, numeric coercion, invalid-OHLC row drops, chronological sort, de-duplication, then
+                a <code>segment_id</code> that increments at <em>every</em> discontinuity. Produces the ContinuityReport
+                that lists every gap.</td>
+            </tr>
+            <tr>
+              <td class="mono">features.py</td>
+              <td>49 features in 11 documented groups, all strictly backward-looking. Deliberate exclusions are
+                documented at the bottom of the file.</td>
+            </tr>
+            <tr>
+              <td class="mono">targets.py</td>
+              <td>Future percentage returns for the six horizons, gap-crossing target invalidation, train-only
+                thresholds, and the three-class direction labels.</td>
+            </tr>
+            <tr>
+              <td class="mono">regime.py</td>
+              <td>The QUIET/ACTIVE activity target: a self-normalising ratio of forward to trailing absolute movement,
+                with its train-only median threshold.</td>
+            </tr>
+            <tr>
+              <td class="mono">sequences.py</td>
+              <td>Zero-copy sliding-window view, gap-aware window validity, the chronological split with purge, the
+                train-only scaler, and <code>SequenceBatcher</code> for lazy per-batch materialisation.</td>
+            </tr>
+            <tr>
+              <td class="mono">pipeline.py</td>
+              <td>The orchestrator. Eight steps; run this. Never imports TensorFlow.</td>
+            </tr>
+            <tr>
+              <td class="mono">audit_leakage.py</td>
+              <td>24 automated leakage checks. Exit code 0 only if all pass, so it can gate a re-run.</td>
+            </tr>
+            <tr>
+              <td class="mono">inference.py</td>
+              <td>Turns the newest candles into a six-horizon read. The input path (fetch → clean → features → scale) is
+                TensorFlow-free and identical to training; TensorFlow is imported lazily inside
+                <code>load_model()</code> only.</td>
+            </tr>
+            <tr>
+              <td class="mono">train.py</td>
+              <td>Headless training — the script form of notebook 05. Same data, models and metrics, but scriptable and
+                repeatable, which is what produces the shipped <code>.keras</code> files. <code>--probe</code> times one
+                epoch and saves nothing.</td>
+            </tr>
+            <tr>
+              <td class="mono">evaluate.py</td>
+              <td>Model validation and accuracy metrics for a model already on disk. Re-measures regression, direction,
+                per-class detail, confusion matrices, calibration and a confidence-floor sweep — and <strong>selects
+                  nothing</strong>. Also <code>--at</code> for one historical moment and <code>--sample</code> for N
+                random windows.</td>
+            </tr>
+            <tr>
+              <td class="mono">plot_trend.py</td>
+              <td>Renders the actual-vs-predicted chart to PNG: price, then the ACTUAL and PREDICTED direction classes
+                as colour bands on one time axis, plus regression scatter, a reliability curve and rolling accuracy.
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">dashboard.py</td>
+              <td>The interactive terminal dashboard. Live candles → the same cleaning/feature/scaling path → the
+                ensemble → a refreshing six-horizon read, plus a scorecard of its own past calls.</td>
+            </tr>
+            <tr>
+              <td class="mono">server.py</td>
+              <td>The React dashboard's API (FastAPI + SSE). Drives the same <code>Dashboard</code> object; holds no
+                prediction logic.</td>
+            </tr>
+            <tr>
+              <td class="mono">predstore.py</td>
+              <td>Every projection the dashboard makes, in SQLite. Stdlib only, so it adds no dependency.</td>
+            </tr>
+            <tr>
+              <td class="mono">runlog.py</td>
+              <td>Runs a command and saves its verbatim output to <code>logs/*.md</code> with the command, exit code and
+                environment. Everything in <code>logs/</code> was produced by this.</td>
+            </tr>
+            <tr>
+              <td class="mono">_check_names.py</td>
+              <td>Internal: flag undefined globals without needing pyflakes.</td>
+            </tr>
+            <tr>
+              <td class="mono">_check_store.py</td>
+              <td>Internal: idempotence, resolution, gap-breaking and the read-only guarantee of the projection store.
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">_smoke_api.py</td>
+              <td>Internal: start the API, hit every endpoint, assert.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Everything else</h3>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Path</th>
+              <th>What lives there</th>
+              <th>In git?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">notebooks/01–03</td>
+              <td>Acquire + sanity-check, gap audit + features, targets + window geometry. Narrative companions to the
+                pipeline.</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td class="mono">notebooks/04</td>
+              <td><strong>Colab only</strong> — the reference training run. Refuses to run locally unless
+                <code>ALLOW_LOCAL_TRAINING = 1</code>.</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td class="mono">notebooks/05</td>
+              <td>The same models locally, CPU-friendly, tail-subset by default.</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td class="mono">web/</td>
+              <td>The React dashboard: React 18 + Vite + lightweight-charts + Recharts. <code>ssr-check.jsx</code>
+                renders every panel against a real payload; <code>markers-check.mjs</code> covers the marker ordering
+                contract.</td>
+              <td>Source yes; <code>node_modules/</code> and <code>dist/</code> no</td>
+            </tr>
+            <tr>
+              <td class="mono">data/raw · processed · final</td>
+              <td>317,919 raw candles → cleaned → featured → the Colab-ready deliverables. <code>final_backup/</code> is
+                a snapshot of an earlier build.</td>
+              <td><strong>No — gitignored</strong></td>
+            </tr>
+            <tr>
+              <td class="mono">models/</td>
+              <td>Trained <code>.keras</code> files, <code>inference_bundle.json</code>,
+                <code>train_metrics.json</code>, <code>eval_summary.json</code>, <code>curve_bands.json</code>, one JSON
+                track record per model, and the SQLite projection store.</td>
+              <td>Yes, except <code>*.db*</code> and <code>*.json.bak</code></td>
+            </tr>
+            <tr>
+              <td class="mono">models/legacy_pre_regime/</td>
+              <td>Models trained before the activity head existed, kept aside so nothing is destroyed.</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td class="mono">charts/</td>
+              <td>Rendered PNGs from <code>plot_trend.py</code>.</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td class="mono">logs/</td>
+              <td>Verbatim terminal transcripts of every reported run. The numbers in this document come from these
+                files, not from a transcription of a terminal.</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td class="mono">.scratch/</td>
+              <td>Development scratch: experiment scripts and intermediate arrays from the regime investigation. Not an
+                input to anything.</td>
+              <td>Untracked</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <span class="h">A fresh clone has no data</span>
+        <p>
+          <code>data/</code> is gitignored — it is roughly 500&nbsp;MB of regenerable
+          artefacts. After cloning you must run the download and the pipeline before
+          anything else will work. Section&nbsp;09 covers this.
+        </p>
+      </div>
+    </section>
+
+    <!-- ======================================================== 04 -->
+    <hr class="rule">
+    <section id="s4">
+      <div class="sec-head"><span class="num">04</span>
+        <h2>How the dataset is built</h2>
+      </div>
+      <p class="sec-sub">Every number in this section was measured by running the code on the real Binance data.</p>
+
+      <h3>4.1 · Where the data comes from</h3>
+      <div class="kv">
+        <div><span class="k">Source</span><span>Binance spot public market data — no API key, anywhere</span></div>
+        <div><span class="k">Symbol / interval</span><span>BTCUSDT · 15 minutes</span></div>
+        <div><span class="k">Span</span><span>2017-08-17 04:00 UTC → 2026-09-16 16:00 UTC</span></div>
+        <div><span class="k">Bulk
+            archives</span><span><code>https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/15m/</code> (plus
+            daily for the open month)</span></div>
+        <div><span class="k">Newest candles</span><span><code>https://api.binance.com/api/v3/klines</code></span></div>
+        <div><span class="k">Measured</span><span>317,919 raw candles; 81 rows dropped in cleaning (malformed / invalid
+            OHLC / duplicates)</span></div>
+      </div>
+
+      <div class="callout note">
+        <span class="h">A real trap this code handles</span>
+        <p>
+          Until 2024-12 the Binance kline <code>open_time</code> is in <strong>milliseconds</strong>
+          (13 digits). From 2025-01 it is in <strong>microseconds</strong> (16 digits). Both are
+          normalised to timezone-aware UTC on load. Getting this wrong shifts every
+          recent timestamp by a factor of 1000 and silently destroys the split.
+        </p>
+      </div>
+
+      <h3>4.2 · Cleaning, gaps and the continuity policy</h3>
+      <p><strong>The rule: a missing candle is never fabricated.</strong> No reindex-and-interpolate, no forward-filled
+        prices, no synthetic candles. If the exchange did not publish a candle, this project does not invent one.</p>
+      <p>Instead, every discontinuity in the 15-minute grid starts a new <em>segment</em>. Two things may never cross a
+        segment boundary: a <strong>sequence window</strong> (the 64 candles fed to the model) and a
+        <strong>target</strong> (a future return measured across missing candles). An honest gap is a small loss of
+        data; a fabricated candle is a lie the model will happily learn from.</p>
+
+      <div class="scroll">
+        <table>
+          <caption>Measured continuity report over the full history.</caption>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th class="num">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">Candles present</td>
+              <td class="num">317,838</td>
+            </tr>
+            <tr>
+              <td class="key">Candles expected on the grid</td>
+              <td class="num">318,481</td>
+            </tr>
+            <tr>
+              <td class="key">Missing candles</td>
+              <td class="num">643 <span class="dim">(0.2019%)</span></td>
+            </tr>
+            <tr>
+              <td class="key">Discontinuities (gaps)</td>
+              <td class="num">31 <span class="dim">(30 of them large)</span></td>
+            </tr>
+            <tr>
+              <td class="key">Largest single gap</td>
+              <td class="num">215 candles = 54.0 hours</td>
+            </tr>
+            <tr>
+              <td class="key">Contiguous segments</td>
+              <td class="num">32</td>
+            </tr>
+            <tr>
+              <td class="key">Segments after row drops</td>
+              <td class="num">56</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        That last row matters. Dropping a row — an unusable feature NaN, or a gap-crossing
+        target — makes two non-adjacent candles neighbours in the frame, and the
+        inherited <code>segment_id</code> would not notice. <code>pipeline.py</code>
+        therefore rebuilds segment ids from the surviving timestamps, turning 24 holes
+        that existed only because of dropped rows into hard boundaries.
+      </p>
+
+      <h3>4.3 · The 49 features</h3>
+      <p>Two rules govern every feature:</p>
+      <ol class="tight">
+        <li><strong>Backward-looking only.</strong> Every feature at row <em>t</em> uses rows ≤ <em>t</em>. All
+          primitives are trailing: <code>.shift(k)</code> with k ≥ 1, trailing <code>.rolling()</code>, recursive
+          <code>.ewm()</code>. This is not asserted, it is <em>proven</em> — audit check 1 corrupts every row after a
+          cut point and confirms the features before it are bit-for-bit unchanged (measured deviation: exactly
+          <code>0.000e+00</code>).</li>
+        <li><strong>No absolute price level.</strong> BTC ranges from roughly $4,000 to over $100,000 across this
+          period. A raw price input would let the model memorise which regime it is in rather than learn behaviour.
+          Every price expression is a return, a ratio, a percentage distance or a volatility.</li>
+      </ol>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Group</th>
+              <th class="num">N</th>
+              <th>Contains</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">returns</td>
+              <td class="num">6</td>
+              <td>returns over 15m … 8h</td>
+            </tr>
+            <tr>
+              <td class="key">volatility</td>
+              <td class="num">6</td>
+              <td>rolling std of 1-bar returns, ATR %, realised volatility</td>
+            </tr>
+            <tr>
+              <td class="key">trend</td>
+              <td class="num">6</td>
+              <td>EMA-20/50/100 distances, slope ratios, price-vs-EMA normalised by ATR</td>
+            </tr>
+            <tr>
+              <td class="key">momentum</td>
+              <td class="num">4</td>
+              <td>RSI-14 (normalised), MACD histogram and signal relative to price</td>
+            </tr>
+            <tr>
+              <td class="key">bollinger</td>
+              <td class="num">4</td>
+              <td>band position, width relative to price, distance to each band</td>
+            </tr>
+            <tr>
+              <td class="key">volume</td>
+              <td class="num">5</td>
+              <td>volume vs. its 16- and 96-bar averages, z-score, regime ratio</td>
+            </tr>
+            <tr>
+              <td class="key">trades</td>
+              <td class="num">4</td>
+              <td>trade count vs. average, average trade size, count change</td>
+            </tr>
+            <tr>
+              <td class="key">orderflow</td>
+              <td class="num">3</td>
+              <td>taker-buy ratio, its deviation from its 16-bar mean, its 96-bar z-score</td>
+            </tr>
+            <tr>
+              <td class="key">candle</td>
+              <td class="num">4</td>
+              <td>wick ratios, body ratio, close position in the candle's own range</td>
+            </tr>
+            <tr>
+              <td class="key">range</td>
+              <td class="num">3</td>
+              <td>position within the 16h and 24h ranges, distance from the 24h extremes</td>
+            </tr>
+            <tr>
+              <td class="key">time</td>
+              <td class="num">4</td>
+              <td>cyclically encoded hour-of-day and day-of-week (sin/cos)</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td class="num">49</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="callout note">
+        <span class="h">Two features were deliberately excluded</span>
+        <p>
+          <code>body_pct</code> duplicates <code>return_1</code> with a correlation above 0.999
+          in a 24/7 market — a duplicate is not neutral, it silently doubles that
+          direction's weight in any distance-based model. <code>buy_pressure</code> is an
+          affine transform of <code>taker_buy_ratio</code>, which is already a feature.
+          Both exclusions are documented at the bottom of <code>features.py</code>.
+        </p>
+      </div>
+
+      <h3>4.4 · Targets: returns and direction labels</h3>
+      <p>The return target is a percentage, not a price — prices are non-stationary and unbounded; returns are
+        comparable across the whole history.</p>
+      <pre><code>future_return_h[t] = 100 * ( close[t+h] / close[t] - 1 )      <span class="c">[percent]</span>
+
+h = 1 → 15m    h = 2 → 30m    h = 3 → 45m
+h = 4 → 60m    h = 5 → 75m    h = 6 → 90m</code></pre>
+      <p>These six columns are the <em>only</em> place future data is touched, and none is ever fed back into a feature
+        — audit check 16 asserts that no target column appears among the model inputs. If <code>close[t+h]</code> lies
+        in a different segment than <code>close[t]</code>, the target is set to <code>NaN</code> rather than silently
+        measuring across missing candles; 636 targets were invalidated this way.</p>
+
+      <p>The direction label bins that return using <strong>train-only quantiles</strong>, frozen:</p>
+      <pre><code>0 = DOWN      return &lt;  lower_threshold
+1 = NEUTRAL   lower_threshold ≤ return ≤ upper_threshold
+2 = UP        return &gt;  upper_threshold</code></pre>
+
+      <div class="scroll">
+        <table>
+          <caption>Measured thresholds — the central 40% of the TRAIN return distribution, per horizon.</caption>
+          <thead>
+            <tr>
+              <th>Horizon</th>
+              <th class="num">Lower</th>
+              <th class="num">Upper</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">15m</td>
+              <td class="num">−0.1033%</td>
+              <td class="num">+0.1087%</td>
+            </tr>
+            <tr>
+              <td class="key">30m</td>
+              <td class="num">−0.1389%</td>
+              <td class="num">+0.1491%</td>
+            </tr>
+            <tr>
+              <td class="key">45m</td>
+              <td class="num">−0.1634%</td>
+              <td class="num">+0.1796%</td>
+            </tr>
+            <tr>
+              <td class="key">60m</td>
+              <td class="num">−0.1841%</td>
+              <td class="num">+0.2034%</td>
+            </tr>
+            <tr>
+              <td class="key">75m</td>
+              <td class="num">−0.2045%</td>
+              <td class="num">+0.2288%</td>
+            </tr>
+            <tr>
+              <td class="key">90m</td>
+              <td class="num">−0.2220%</td>
+              <td class="num">+0.2505%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout bad">
+        <span class="h">The most important table in this document</span>
+        <p>
+          The thresholds give <strong>30 / 40 / 30</strong> on train <em>by construction</em>.
+          Applied unchanged to the test period they give roughly <strong>24 / 54 / 22</strong>.
+          That is a genuine distribution shift between the two eras — the 2025–2026 market
+          spent more time inside small 15-minute moves than the 2017–2024 market did. No
+          amount of modelling removes it. The consequences:
+        </p>
+        <ul class="tight">
+          <li>A model that always predicts NEUTRAL scores about <strong>54%</strong> accuracy on test while being
+            completely useless.</li>
+          <li><strong>Macro-F1 is the honest headline metric here. Accuracy is not.</strong></li>
+          <li>A model well calibrated on validation may still be miscalibrated on test purely because the class priors
+            moved.</li>
+        </ul>
+      </div>
+
+      <h3>4.5 · The activity target — why it is the one that works</h3>
+      <p>The direction head asks "which way?", where the sign of a 15-minute move is close to unpredictable. The
+        activity head asks a different question:</p>
+      <pre><code>absr[t]               = | 100 * ( close[t] / close[t-1] - 1 ) |     <span class="c">[percent]</span>
+forward_absmove_h[t]  = mean( absr[t+1 .. t+h] )                     <span class="c">FUTURE</span>
+reference_absmove[t]  = mean( absr[t-95 .. t] )                      <span class="c">PAST — 24 hours</span>
+regime_ratio_h[t]     = forward_absmove_h[t] / reference_absmove[t]
+
+label = ACTIVE (1)  if regime_ratio_h[t] &gt; tau_h,  else QUIET (0)</code></pre>
+
+      <p>Dividing by the sample's own trailing activity makes the label <strong>self-normalising</strong>: both sides of
+        the ratio are mean absolute returns of the same asset in the same units, so the class balance does not drift
+        when the price level or the overall volatility regime changes. Measured: train 50.0% ACTIVE, validation 50.6%,
+        test 49.6% — a train→test drift of 0.39&nbsp;pp, against the direction thresholds' 6&nbsp;pp. And because the
+        classes are 50/50 by construction, <strong>0.50 is the baseline</strong>: there is no majority class to hide
+        behind.</p>
+
+      <p><code>tau_h</code> is the median of the ratio over the <strong>TRAIN split only</strong>, then frozen:</p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Horizon</th>
+              <th class="num">Ratio threshold</th>
+              <th>Class rule</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">15m</td>
+              <td class="num">0.7390</td>
+              <td>ratio &gt; 0.7390 → ACTIVE</td>
+            </tr>
+            <tr>
+              <td class="key">30m</td>
+              <td class="num">0.8090</td>
+              <td>ratio &gt; 0.8090 → ACTIVE</td>
+            </tr>
+            <tr>
+              <td class="key">60m</td>
+              <td class="num">0.8528</td>
+              <td>ratio &gt; 0.8528 → ACTIVE</td>
+            </tr>
+            <tr>
+              <td class="key">90m</td>
+              <td class="num">0.8724</td>
+              <td>ratio &gt; 0.8724 → ACTIVE</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>4.6 · Sequence geometry — the "block + offsets" contract</h3>
+      <div class="callout warn">
+        <span class="h">Read this one before touching any array</span>
+        <p>One sample is:</p>
+        <pre style="margin:8px 0 4px"><code>X : (n_samples, 64, 49)     64 candles × 49 features = 16 hours of context
+y : (n_samples, 6)          six future percentage returns
+d : (n_samples, 6)          six DOWN/NEUTRAL/UP labels
+r : (n_samples, 4)          four QUIET/ACTIVE labels
+
+sample k uses 2D rows [ starts[k] , starts[k] + 63 ]
+its target is the target of ROW starts[k] + 63  — the LAST candle in the window</code></pre>
+      </div>
+
+      <p><strong>Why the 3D tensor is never stored.</strong> A fully materialised <code>(312,165, 64, 49)</code> float32
+        tensor is 3.92&nbsp;GB, while the equivalent 2D matrix is about 60&nbsp;MB. The 3D tensor is therefore produced
+        as a zero-copy sliding-window view and materialised one batch at a time by <code>SequenceBatcher</code>.</p>
+
+      <p><strong>The part that is easy to get wrong.</strong> Windows that would straddle a data gap are
+        <em>excluded</em>, which leaves holes in the sequence of window-start indices. Consequently:</p>
+      <ul class="tight">
+        <li><code>X_train.npy</code> is a <strong>contiguous 2D block</strong>, not one row per sample.</li>
+        <li><code>starts_train.npy</code> holds the window-start <strong>offset</strong> of each sample inside that
+          block.</li>
+        <li>Sample <em>k</em> is <code>X[starts[k] : starts[k] + LOOKBACK]</code> — <strong>never</strong>
+          <code>X[k : k + LOOKBACK]</code>.</li>
+      </ul>
+      <p>On this dataset <code>starts_train</code> has 218,515 entries but the block has 221,413 rows, and the offset
+        sequence contains 43 discontinuities. Slicing <code>X_train[k : k+64]</code> would silently splice across one of
+        those holes and fabricate a window spanning missing market data — the precise failure this project exists to
+        avoid.</p>
+
+      <p><strong>The offsets are block-relative, not global.</strong> <code>starts_train[0] == 0</code>, and likewise
+        <code>starts_val[0] == 0</code>. Offsets from two different splits are therefore <em>not</em> comparable;
+        subtracting one from the other is meaningless. To relate two splits in time, use <code>timestamps_*.npy</code>,
+        which holds each sample's <em>target</em> time in absolute UTC. The same applies to <code>y_*.npy</code>,
+        <code>y_dir_*.npy</code> and <code>timestamps_*.npy</code>: they already hold exactly one row per sample — do
+        not apply a <code>[LOOKBACK-1:]</code> offset to them.</p>
+
+      <h3>4.7 · The chronological split and the purge</h3>
+      <p><strong>Time order is never shuffled.</strong> Training on the future to predict the past is the single most
+        common way to produce a financial ML result that looks brilliant and is worthless. The split is a strictly
+        monotonic slice of a time-ordered array: train → purge → validation → purge → test.</p>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Split</th>
+              <th class="num">Samples</th>
+              <th>Period (UTC)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">train</td>
+              <td class="num">218,515</td>
+              <td>2017-08-23 21:45 → 2024-01-15 02:00</td>
+            </tr>
+            <tr>
+              <td class="key">validation</td>
+              <td class="num">46,824</td>
+              <td>2024-01-15 19:45 → 2025-05-17 13:30</td>
+            </tr>
+            <tr>
+              <td class="key">test</td>
+              <td class="num">46,686</td>
+              <td>2025-05-18 07:15 → 2026-09-16 14:30</td>
+            </tr>
+            <tr>
+              <td class="key">purged</td>
+              <td class="num">140</td>
+              <td>70 samples at each boundary</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>Valid windows</td>
+              <td class="num">312,165</td>
+              <td>from 315,000 candidates — 2,835 excluded</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="callout note">
+        <span class="h">Why the purge is 70 samples and not 6</span>
+        <p>
+          A sample's window occupies 64 candles, and its <em>label</em> is resolved from
+          candles up to 6 further past the end of that window. So the last training
+          sample's label is computed from rows <code>[start+63, start+69]</code>. For no
+          training label to be resolved from any candle inside the validation feature
+          window, the separation must exceed <code>LOOKBACK − 1 + HORIZON_MAX = 69</code> rows.
+          Purging only <code>HORIZON_MAX = 6</code> would leave a 57-row overlap in which
+          training labels are computed from candles the validation inputs also summarise.
+        </p>
+        <p>
+          <code>PURGE_SAMPLES = LOOKBACK + HORIZON_MAX = 70</code>. Measured separation:
+          <strong>71 rows = 1,065 minutes</strong> at both boundaries, against a 70-row
+          minimum. The pipeline asserts this invariant and refuses to run if it is
+          violated, so a future change to <code>LOOKBACK</code> or <code>HORIZONS</code>
+          cannot silently break it.
+        </p>
+      </div>
+
+      <p><strong>Validation vs. test.</strong> Validation is for choosing the architecture, the hyperparameters and the
+        early-stopping epoch. Test is touched exactly once, at the end. If you find yourself tuning against the test
+        set, it has stopped being a test set.</p>
+
+      <h3>4.8 · Scaling — fitted on the training split only</h3>
+      <p>Fitting a scaler on everything lets the mean and standard deviation of the test period influence how the
+        training data is represented. That is leakage, and it is a particularly sneaky kind because the code still runs
+        and the scores still look fine.</p>
+      <ul class="tight">
+        <li><code>StandardScaler</code>, fitted on the rows that make up the <strong>training windows</strong> and
+          nothing else: rows <code>[0, 221,413)</code>.</li>
+        <li>That range ends strictly before the first validation feature row (221,420). The last training label is
+          resolved from candles up to row 221,418 — <strong>1 row of clearance</strong>, tight by construction, and
+          audit check 11 re-verifies it.</li>
+        <li>The same frozen scaler is applied to validation and test, then saved to <code>data/final/scaler.pkl</code>
+          and <strong>loaded, never refit</strong>, by inference and both dashboards.</li>
+        <li>Scaled values are clipped to ±5σ. <strong>0.329%</strong> of training values sit at the clip bounds — a
+          direct consequence of the kurtosis of ≈84. Measured: train <code>max|mean| = 0.0166</code>, mean std
+          <code>0.9305</code> (1.0 before clipping).</li>
+        <li>Targets are scaled too, fitted on train only, because MSE gradients on ±0.39% returns are tiny. Raw unscaled
+          returns remain the source of truth in the CSV and in <code>y_*.npy</code>.</li>
+      </ul>
+      <p>Clipping is a numerical-stability choice, and it has a real cost: the largest moves, which are the ones a
+        trader would care most about, are damped. That is stated rather than hidden.</p>
+
+      <h3>4.9 · What the pipeline writes</h3>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>File</th>
+              <th class="num">Shape / size</th>
+              <th>What it is</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">X_train.npy</td>
+              <td class="num">(221,413, 49) · 43.4 MB</td>
+              <td>Scaled block — <em>more rows than samples</em>, see 4.6</td>
+            </tr>
+            <tr>
+              <td class="mono">X_val.npy / X_test.npy</td>
+              <td class="num">(46,887 / 46,749, 49)</td>
+              <td>Same, per split</td>
+            </tr>
+            <tr>
+              <td class="mono">starts_*.npy</td>
+              <td class="num">218,515 / 46,824 / 46,686</td>
+              <td>Window-start offsets into each block</td>
+            </tr>
+            <tr>
+              <td class="mono">y_*.npy</td>
+              <td class="num">(n, 6) float32</td>
+              <td>Future returns, percent</td>
+            </tr>
+            <tr>
+              <td class="mono">y_dir_*.npy</td>
+              <td class="num">(n, 6) int8</td>
+              <td>0 = DOWN, 1 = NEUTRAL, 2 = UP</td>
+            </tr>
+            <tr>
+              <td class="mono">y_regime_*.npy</td>
+              <td class="num">(n, 4) int8</td>
+              <td>0 = QUIET, 1 = ACTIVE</td>
+            </tr>
+            <tr>
+              <td class="mono">timestamps_*.npy</td>
+              <td class="num">(n,) int64</td>
+              <td>Target time, epoch ms UTC</td>
+            </tr>
+            <tr>
+              <td class="mono">timestamps_all.npy · segment_ids.npy</td>
+              <td class="num">(315,063,)</td>
+              <td>Row-index reference for the audit</td>
+            </tr>
+            <tr>
+              <td class="mono">scaler.pkl · target_scaler.pkl</td>
+              <td class="num">1.6 KB · 0.6 KB</td>
+              <td>The frozen scalers</td>
+            </tr>
+            <tr>
+              <td class="mono">dataset_metadata.json</td>
+              <td class="num">15 KB</td>
+              <td>Every reported statistic, in 26 sections</td>
+            </tr>
+            <tr>
+              <td class="mono">btcusdt_15m_dataset.csv</td>
+              <td class="num">315,063 × 72 · ~219 MB</td>
+              <td>Human-readable, rounded to 8 decimals. For inspection and Excel; training reads the <code>.npy</code>
+                files instead.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="dim" style="font-size:13px">
+        Timestamps are stored as int64 epoch <em>milliseconds</em> deliberately, so the
+        <code>.npy</code> files contain no timezone objects and no pickle — older numpy
+        versions refuse to load object arrays with <code>allow_pickle=False</code>.
+      </p>
+    </section>
+
+    <!-- ======================================================== 05 -->
+    <hr class="rule">
+    <section id="s5">
+      <div class="sec-head"><span class="num">05</span>
+        <h2>How leakage is prevented</h2>
+      </div>
+      <p class="sec-sub">Six mechanisms, all verified automatically by <code>python src/audit_leakage.py</code>.</p>
+
+      <div class="grid g2">
+        <div class="card tight"><strong>1 · Features are strictly backward-looking</strong>
+          <p class="dim">Verified by corrupting all rows after a cut point and asserting the features before it are
+            bit-for-bit unchanged — measured deviation exactly <code>0.000e+00</code>.</p>
+        </div>
+        <div class="card tight"><strong>2 · Targets are the only forward touch</strong>
+          <p class="dim">And a target that would span a data gap is <code>NaN</code> rather than measured across missing
+            candles.</p>
+        </div>
+        <div class="card tight"><strong>3 · Missing candles are never fabricated</strong>
+          <p class="dim">Every discontinuity starts a new segment; neither a window nor a target may cross one.</p>
+        </div>
+        <div class="card tight"><strong>4 · Splits are strictly chronological</strong>
+          <p class="dim">70/15/15 in time order, never shuffled.</p>
+        </div>
+        <div class="card tight"><strong>5 · A purge of 70 samples separates the splits</strong>
+          <p class="dim">So no training label is resolved from any candle inside the validation or test feature windows.
+          </p>
+        </div>
+        <div class="card tight"><strong>6 · Scaler and thresholds are train-only</strong>
+          <p class="dim">Fitted on the training split and then frozen. The test set never influences either.</p>
+        </div>
+      </div>
+
+      <h3>The 24 checks</h3>
+      <p>The checks come in two kinds: <strong>dynamic</strong> checks that re-execute the real functions on synthetic
+        data whose future is deliberately corrupted, and <strong>static</strong> checks on the artefacts the pipeline
+        actually wrote.</p>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="num">#</th>
+              <th>Check</th>
+              <th>Measured result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="num">1</td>
+              <td>Features are strictly backward-looking</td>
+              <td class="dim">max |feature diff| before the cut = <code>0.000e+00</code></td>
+            </tr>
+            <tr>
+              <td class="num">2</td>
+              <td><code>future_return_h[t]</code> equals its closed-form reference</td>
+              <td class="dim"><code>0e+00</code> deviation, all six horizons</td>
+            </tr>
+            <tr>
+              <td class="num">3</td>
+              <td>A target spanning a data gap is NaN</td>
+              <td class="dim">confirmed on a real gap row</td>
+            </tr>
+            <tr>
+              <td class="num">4</td>
+              <td>Scaler statistics ignore validation/test rows</td>
+              <td class="dim">identical <code>mean_</code> and <code>scale_</code> after wrecking later rows</td>
+            </tr>
+            <tr>
+              <td class="num">5</td>
+              <td>Directional thresholds ignore later targets</td>
+              <td class="dim">thresholds do not move a single bit</td>
+            </tr>
+            <tr>
+              <td class="num">6</td>
+              <td>Splits are chronological and non-overlapping</td>
+              <td class="dim">verified structurally below</td>
+            </tr>
+            <tr>
+              <td class="num">7</td>
+              <td>All expected artefacts exist</td>
+              <td class="dim">11 files present</td>
+            </tr>
+            <tr>
+              <td class="num">8</td>
+              <td>Array shapes match the contract</td>
+              <td class="dim">X (221413, 49) (46887, 49) (46749, 49) · y (218515, 6)</td>
+            </tr>
+            <tr>
+              <td class="num">9</td>
+              <td>No NaN or Inf in the final scaled arrays</td>
+              <td class="dim">all finite</td>
+            </tr>
+            <tr>
+              <td class="num">10</td>
+              <td>Train &lt; Validation &lt; Test in wall-clock time</td>
+              <td class="dim">no shuffle</td>
+            </tr>
+            <tr>
+              <td class="num">11a</td>
+              <td>Timestamps are plain int64, no pickled objects</td>
+              <td class="dim">dtype int64</td>
+            </tr>
+            <tr>
+              <td class="num">11</td>
+              <td>Purge separates the splits</td>
+              <td class="dim">71 rows / 1,065 min at both boundaries, minimum 70</td>
+            </tr>
+            <tr>
+              <td class="num">12a</td>
+              <td><code>X_*.npy</code> is reproduced by recomputing <code>scaler(raw CSV features)</code> from scratch
+              </td>
+              <td class="dim">max deviation <code>3.81e-06</code></td>
+            </tr>
+            <tr>
+              <td class="num">12</td>
+              <td>The scaler really was fitted on train</td>
+              <td class="dim">max|mean| 0.0166 · mean std 0.9305 · 0.329% at the clip bounds</td>
+            </tr>
+            <tr>
+              <td class="num">13</td>
+              <td>Labels reproduce exactly from the stored return and frozen thresholds</td>
+              <td class="dim">zero mismatches</td>
+            </tr>
+            <tr>
+              <td class="num">14</td>
+              <td>Every class is populated at every horizon in every split</td>
+              <td class="dim">max class share 53.8%</td>
+            </tr>
+            <tr>
+              <td class="num">15</td>
+              <td><code>dataset_metadata.json</code> is complete</td>
+              <td class="dim">10 required sections present</td>
+            </tr>
+            <tr>
+              <td class="num">16</td>
+              <td>No target column appears among the model features</td>
+              <td class="dim">0 of 21 target columns among the 49 features</td>
+            </tr>
+            <tr>
+              <td class="num">17</td>
+              <td>No <em>module-level</em> TensorFlow or PyTorch import in <code>src/</code></td>
+              <td class="dim">11 deliberate lazy imports inside functions, reported not flagged</td>
+            </tr>
+            <tr>
+              <td class="num">18</td>
+              <td>Thresholds are declared as train-derived in the metadata</td>
+              <td class="dim">mode = train_quantile</td>
+            </tr>
+            <tr>
+              <td class="num">19</td>
+              <td>Window offsets never slice past the end of their block</td>
+              <td class="dim">max offset + 64 ≤ block rows, all three splits</td>
+            </tr>
+            <tr>
+              <td class="num">20</td>
+              <td>No sequence window straddles a data gap</td>
+              <td class="dim">312,025 windows checked, <strong>0 crossings</strong></td>
+            </tr>
+            <tr>
+              <td class="num">21</td>
+              <td>The activity target is backward-looking and gap-safe</td>
+              <td class="dim">rebuilt from RAW closes on a second code path; 4,441 rows (1.41%) labelled across a
+                dropped candle, disclosed and within the 2% bound</td>
+            </tr>
+            <tr>
+              <td class="num">22</td>
+              <td>The activity classes are balanced across every split</td>
+              <td class="dim">largest deviation from 50/50: 0.69 pp</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="num">24/24</td>
+              <td>All checks passing</td>
+              <td class="dim">exit code 0</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="callout ok">
+        <span class="h">Check 21 is the one to read if you only read one</span>
+        <p>
+          It rebuilds the activity labels from <em>raw closes on the clean candle series</em> —
+          a second code path, so a bug inside <code>regime.py</code> cannot validate itself — and
+          checks five separate properties. It also <em>discloses</em> the one place the labels
+          are not a function of the shipped rows alone, and bounds it at 2% so a regression
+          that made most labels depend on absent candles would fail here rather than quietly
+          inflate the headline.
+        </p>
+      </div>
+    </section>
+
+    <!-- ======================================================== 06 -->
+    <hr class="rule">
+    <section id="s6">
+      <div class="sec-head"><span class="num">06</span>
+        <h2>The model</h2>
+      </div>
+      <p class="sec-sub">One shared recurrent trunk, three heads, three seeds averaged.</p>
+
+      <div class="flow">
+        <div class="flow-row">
+          <div class="node"><b>Input</b><i>(batch, 64, 49)</i></div>
+          <div class="arrow">→</div>
+          <div class="node acc"><b>GRU trunk</b><i>64 units · dropout 0.25</i></div>
+          <div class="arrow">→</div>
+          <div class="node"><b>return head</b><i>linear · 6 outputs · MSE on scaled returns</i></div>
+          <div class="arrow">+</div>
+          <div class="node"><b>direction head</b><i>reshape (6,3) then softmax · weighted CE</i></div>
+          <div class="arrow">+</div>
+          <div class="node"><b>activity head</b><i>sigmoid · 4 outputs · binary CE</i></div>
+        </div>
+      </div>
+
+      <h3>Why multi-task at all</h3>
+      <p>The direction head regularises the trunk toward representations that are useful for classification, while the
+        return head keeps the magnitude information the direction labels throw away. The activity head adds a third
+        question that is genuinely predictable, and it is the one whose accuracy means something.</p>
+
+      <h3>Class weighting — a deliberate trade</h3>
+      <p>Trained with a plain cross-entropy the direction head collapses onto NEUTRAL: measured test recall was DOWN
+        0.19 / NEUTRAL 0.85 / UP 0.21. <code>DIRECTION_CLASS_WEIGHT_STRENGTH = 0.5</code> interpolates between no
+        weighting and full inverse-frequency weighting, normalised to mean 1 so the effective learning rate does not
+        change. The measured weights are <code>1.047 / 0.907 / 1.047</code> per horizon.</p>
+      <p>This <strong>trades accuracy for macro-F1</strong>, and the trade was made explicitly: pushing recall into the
+        minority classes necessarily costs some majority-class hits. Accuracy is barely affected either way, and the
+        activity head is the accuracy headline.</p>
+
+      <h3>What early stopping monitors</h3>
+      <p>The original configuration early-stopped on <code>val_loss</code> = MSE(return) + CE(direction) + CE(activity).
+        The return head has <em>no skill</em>, so most of the early-stopping signal was a head that cannot predict
+        anything drowning out the two that can. The checkpoint metric is instead computed on the validation split by a
+        callback:</p>
+      <pre><code>selection_score = 0.5 × direction_macro_F1 + 0.5 × activity_accuracy</code></pre>
+      <p>Both terms live in [0, 1] and both are things the project reports anyway. Measured selection score:
+        <strong>0.5505</strong>.</p>
+
+      <h3>Three seeds, averaged rather than picked</h3>
+      <p>The shipped artefact is <strong>not</strong> a single winning <code>.keras</code> file. It is a three-member
+        ensemble — <code>gru_s42</code>, <code>gru_s43</code>, <code>gru_s44</code> — combined by the <em>mean of the
+          per-member softmax probabilities</em>, named in <code>models/inference_bundle.json</code>.</p>
+      <p>The reason is the seed-to-seed spread: the differences between seeds are within noise, so picking the best one
+        on validation would be selecting on noise. Averaging is the cheapest reliable gain available here — it costs
+        only time, it cannot leak, and it reduces the variance that makes a single-seed score hard to trust.</p>
+
+      <div class="scroll">
+        <table>
+          <caption>Training configuration of the reported run, verbatim from <code>models/train_metrics.json</code>.
+          </caption>
+          <thead>
+            <tr>
+              <th>Setting</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">Architecture</td>
+              <td>GRU (LSTM trained alongside for comparison)</td>
+            </tr>
+            <tr>
+              <td class="key">Units / dropout / lr</td>
+              <td>64 / 0.25 / 1e-3</td>
+            </tr>
+            <tr>
+              <td class="key">Batch size</td>
+              <td>1024</td>
+            </tr>
+            <tr>
+              <td class="key">Max epochs / patience</td>
+              <td>25 / 5</td>
+            </tr>
+            <tr>
+              <td class="key">Seeds</td>
+              <td>42, 43, 44 — averaged</td>
+            </tr>
+            <tr>
+              <td class="key">Training samples</td>
+              <td>218,515 (full split, no subset)</td>
+            </tr>
+            <tr>
+              <td class="key">Epochs actually run</td>
+              <td>10 / 11 / 16 (early-stopped)</td>
+            </tr>
+            <tr>
+              <td class="key">Wall clock</td>
+              <td>850 s + 929 s + 1,280 s ≈ 51 minutes, CPU only</td>
+            </tr>
+            <tr>
+              <td class="key">Per epoch</td>
+              <td>~78 s (214 steps, 366 ms/step)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <span class="h">A bug worth knowing about</span>
+        <p>
+          An earlier revision applied <code>softmax</code> to the flat 18-vector and reshaped
+          to <code>(6, 3)</code> afterwards. That shares one normaliser across all six
+          horizons, so each horizon's three probabilities summed to ≈1/6 rather than 1, and
+          the head could not express "UP at 15m, DOWN at 90m" independently. Argmax survived
+          it — softmax is monotonic within a group — which is exactly what made it easy to
+          miss. It was caught only by noticing that displayed probabilities did not sum to 1.
+        </p>
+        <p>
+          The order is now reshape-then-softmax, and <code>build_multi_task_model()</code>
+          asserts the normalisation after building, as does notebook 05. Shapes alone would
+          not have caught it; the assertion is on the <em>values</em>.
+        </p>
+      </div>
+    </section>
+
+    <!-- ======================================================== 07 -->
+    <hr class="rule">
+    <section id="s7">
+      <div class="sec-head"><span class="num">07</span>
+        <h2>Measured results, including the failures</h2>
+      </div>
+      <p class="sec-sub">
+        The 46,686-sample held-out test set, 2025-05-18 → 2026-09-16, read <strong>once</strong>
+        by <code>src/evaluate.py</code>. Nothing in these tables was used to select anything.
+        Full transcripts: <code>logs/02_train.md</code> and <code>logs/03_evaluate.md</code>.
+      </p>
+
+      <h3>7.1 · The activity head is the headline</h3>
+      <p>0.50 is the baseline by construction — both classes are ~50% of the set — so any excess is skill rather than a
+        majority class.</p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Horizon</th>
+              <th class="num">Baseline</th>
+              <th class="num">Ensemble</th>
+              <th class="num">Lift</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">15m</td>
+              <td class="num">0.5039</td>
+              <td class="num best">0.6004</td>
+              <td class="num pos">+0.0964</td>
+            </tr>
+            <tr>
+              <td class="key">30m</td>
+              <td class="num">0.4975</td>
+              <td class="num best">0.6400</td>
+              <td class="num pos">+0.1425</td>
+            </tr>
+            <tr>
+              <td class="key">60m</td>
+              <td class="num">0.4951</td>
+              <td class="num best">0.6708</td>
+              <td class="num pos">+0.1757</td>
+            </tr>
+            <tr>
+              <td class="key">90m</td>
+              <td class="num">0.4942</td>
+              <td class="num best">0.6799</td>
+              <td class="num pos">+0.1856</td>
+            </tr>
+            <tr>
+              <td class="key"><strong>mean</strong></td>
+              <td class="num">0.4977</td>
+              <td class="num best">0.6477</td>
+              <td class="num pos"><strong>+0.1501</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Both classes are predicted competently rather than one being defaulted to: at 90m, QUIET precision/recall is
+        0.71/0.60 and ACTIVE is 0.66/0.76. It is <strong>not a trading signal</strong> — "this window will be busier
+        than the last 24 hours" says nothing about direction.</p>
+
+      <h3>7.2 · The direction head has skill — but it is weak</h3>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Horizon</th>
+              <th class="num">Majority class</th>
+              <th class="num">Ensemble</th>
+              <th class="num">Ratio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">15m</td>
+              <td class="num">0.2333</td>
+              <td class="num best">0.4279</td>
+              <td class="num">×1.83</td>
+            </tr>
+            <tr>
+              <td class="key">30m</td>
+              <td class="num">0.2287</td>
+              <td class="num best">0.4276</td>
+              <td class="num">×1.87</td>
+            </tr>
+            <tr>
+              <td class="key">45m</td>
+              <td class="num">0.2278</td>
+              <td class="num best">0.4250</td>
+              <td class="num">×1.87</td>
+            </tr>
+            <tr>
+              <td class="key">60m</td>
+              <td class="num">0.2259</td>
+              <td class="num best">0.4194</td>
+              <td class="num">×1.86</td>
+            </tr>
+            <tr>
+              <td class="key">75m</td>
+              <td class="num">0.2266</td>
+              <td class="num best">0.4211</td>
+              <td class="num">×1.86</td>
+            </tr>
+            <tr>
+              <td class="key">90m</td>
+              <td class="num">0.2264</td>
+              <td class="num best">0.4212</td>
+              <td class="num">×1.86</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        It beats the majority-class baseline at every horizon, by a wide margin.
+        <strong>But the model is heavily NEUTRAL-biased.</strong> Per-class recall at 15m:
+        NEUTRAL 0.805, DOWN 0.242, UP 0.241 — it catches a directional move roughly one time
+        in four. DOWN and UP precision sit near 0.35–0.36. Plain accuracy is barely better
+        than always-NEUTRAL (0.5450 vs 0.5383 at 15m), which is exactly why macro-F1 is the
+        metric reported here. Accuracy on a three-class problem with one dominant class
+        flatters the model; macro-F1 does not let it.
+      </p>
+
+      <h3>7.3 · The return head does not work</h3>
+      <p>MAE in percent return, lower is better. <code>naive mean</code> is "always predict the mean".</p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Horizon</th>
+              <th class="num">naive mean</th>
+              <th class="num">Ensemble</th>
+              <th class="num">Correlation</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">15m</td>
+              <td class="num best">0.145945</td>
+              <td class="num">0.146489</td>
+              <td class="num">0.012</td>
+              <td class="neg">worse</td>
+            </tr>
+            <tr>
+              <td class="key">30m</td>
+              <td class="num best">0.205102</td>
+              <td class="num">0.207241</td>
+              <td class="num">0.012</td>
+              <td class="neg">worse</td>
+            </tr>
+            <tr>
+              <td class="key">45m</td>
+              <td class="num best">0.249220</td>
+              <td class="num">0.252593</td>
+              <td class="num">0.007</td>
+              <td class="neg">worse</td>
+            </tr>
+            <tr>
+              <td class="key">60m</td>
+              <td class="num best">0.287304</td>
+              <td class="num">0.292507</td>
+              <td class="num">0.004</td>
+              <td class="neg">worse</td>
+            </tr>
+            <tr>
+              <td class="key">75m</td>
+              <td class="num best">0.321510</td>
+              <td class="num">0.327982</td>
+              <td class="num">0.001</td>
+              <td class="neg">worse</td>
+            </tr>
+            <tr>
+              <td class="key">90m</td>
+              <td class="num best">0.352292</td>
+              <td class="num">0.361520</td>
+              <td class="num">−0.005</td>
+              <td class="neg">worse</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        <strong>Worse than predicting the mean at every single horizon.</strong> The correlation
+        between predicted and actual return is 0.012 at 15m and goes <em>negative</em> at 90m.
+        This is reported rather than hidden: the head was trained as an auxiliary task to shape
+        the shared trunk, it does not produce a usable forecast, and both dashboards label its
+        <code>expected</code> column accordingly — and draw it next to the flat zero-return
+        baseline so the two can be compared directly.
+      </p>
+
+      <h3>7.4 · The confidence floor is a straight loss</h3>
+      <p>The dashboard lets you raise a floor: calls below it display as NEUTRAL. It sounds prudent. It was measured,
+        and on this model it costs macro-F1 monotonically while buying essentially no accuracy.</p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Floor</th>
+              <th class="num">Test macro-F1</th>
+              <th class="num">Test accuracy</th>
+              <th class="num">Commits to a direction</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">0.00</td>
+              <td class="num best">0.4237</td>
+              <td class="num">0.5282</td>
+              <td class="num">33.2%</td>
+            </tr>
+            <tr>
+              <td class="key">0.38</td>
+              <td class="num">0.3960</td>
+              <td class="num">0.5337</td>
+              <td class="num">24.0%</td>
+            </tr>
+            <tr>
+              <td class="key">0.50</td>
+              <td class="num">0.2469</td>
+              <td class="num">0.5234</td>
+              <td class="num">1.6%</td>
+            </tr>
+            <tr>
+              <td class="key">0.70</td>
+              <td class="num">0.2283</td>
+              <td class="num">0.5202</td>
+              <td class="num">0.0%</td>
+            </tr>
+            <tr>
+              <td class="key"><em>always-NEUTRAL baseline</em></td>
+              <td class="num"><em>0.2281</em></td>
+              <td class="num"><em>0.5202</em></td>
+              <td class="num"><em>0%</em></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The small test-set accuracy bump at 0.38 costs 9 points of macro-F1 to buy 0.25 points
+        of accuracy. The reason: downgrading a weak DOWN or UP call to NEUTRAL removes exactly
+        the scarce thing the model is being measured on — DOWN and UP recall are already the
+        bottleneck, while NEUTRAL is already over-predicted. Removing rare-class calls cannot
+        help a macro-averaged metric.
+      </p>
+      <p class="dim">
+        This does <em>not</em> contradict the calibration table. Calibration says the probability
+        is informative <em>within</em> the model's own argmax calls (test accuracy rises
+        0.37 → 0.83 across confidence buckets). The floor <em>overrides</em> those argmax calls,
+        and the override is what costs. Both are measurements of different things.
+      </p>
+
+      <h3>7.5 · How to read any number that comes out of this project</h3>
+      <ol class="tight">
+        <li>Did it beat the naive zero-return baseline on MAE? If not, it has learned nothing the mean does not already
+          tell you.</li>
+        <li>Did it beat the majority-class baseline on <strong>macro-F1</strong> — not accuracy? On this test set,
+          always-NEUTRAL scores about 54% accuracy while being worthless.</li>
+        <li>Is it better than XGBoost on the same split? A recurrent architecture that loses to gradient-boosted trees
+          on tabular-ish features is a real and common outcome.</li>
+        <li>Are the per-horizon numbers coherent? Strong at 15m and 75m but random at 30m is a red flag, not a
+          discovery.</li>
+        <li>Does the confusion matrix show a collapsed class? A model that never predicts DOWN will have a
+          respectable-looking accuracy and a terrible DOWN recall.</li>
+        <li>Was the test set touched more than once? If you looked, changed something and looked again, it is now a
+          validation set with extra steps.</li>
+      </ol>
+
+      <div class="callout ok">
+        <span class="h">What this establishes</span>
+        <p>16 hours of 15m candles contain <em>some</em> information about both the direction and the volatility of the
+          next 15–90 minutes that a recurrent network can extract — on one test period, under a leakage-audited split.
+          The volatility question is answered well; the direction question is answered poorly but better than chance.
+        </p>
+      </div>
+      <div class="callout bad">
+        <span class="h">What it does not establish</span>
+        <p>Profitability. The test period is a single regime, directional recall is low, and no fees, slippage or
+          funding are modelled anywhere. A macro-F1 of 0.42 on a three-class problem, and a volatility classifier that
+          is right 65% of the time, are a long way from a trading edge. Directional accuracy ignores magnitude: a model
+          can be right 55% of the time and still lose money if its correct calls are small and its wrong ones are large.
+        </p>
+      </div>
+    </section>
+
+    <!-- ======================================================== 08 -->
+    <hr class="rule">
+    <section id="s8">
+      <div class="sec-head"><span class="num">08</span>
+        <h2>The four interfaces</h2>
+      </div>
+      <p class="sec-sub">One model, four ways to look at it.</p>
+
+      <h3>8.1 · The terminal dashboard</h3>
+      <pre><code>python src/dashboard.py                                    <span class="c"># the shipped 3-seed ensemble</span>
+python src/dashboard.py --interval 60                      <span class="c"># slower refresh</span>
+python src/dashboard.py --model models/gru_s42_best.keras  <span class="c"># one seed instead</span>
+python src/dashboard.py --min-confidence 0.4               <span class="c"># start with a floor applied</span>
+python src/dashboard.py --once                             <span class="c"># one frame, no UI, writes nothing</span></code></pre>
+      <p>Panels: last candle / close / change, a 16-hour price sparkline, the six-horizon prediction with per-horizon
+        probabilities, the activity read, the live scorecard, and the recent-calls log.</p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><kbd>r</kbd></td>
+              <td>Refresh now</td>
+            </tr>
+            <tr>
+              <td><kbd>i</kbd></td>
+              <td>Cycle the refresh interval (15/30/60/120/300 s)</td>
+            </tr>
+            <tr>
+              <td><kbd>c</kbd></td>
+              <td>Cycle the confidence floor — calls below it display as NEUTRAL. <em>Measured to hurt</em> (see 7.4);
+                the dashboard prints that caveat whenever the floor is non-zero.</td>
+            </tr>
+            <tr>
+              <td><kbd>m</kbd></td>
+              <td>Cycle the models in <code>models/</code></td>
+            </tr>
+            <tr>
+              <td><kbd>l</kbd></td>
+              <td>Toggle the log panel</td>
+            </tr>
+            <tr>
+              <td><kbd>x</kbd></td>
+              <td>Clear this model's track record</td>
+            </tr>
+            <tr>
+              <td><kbd>q</kbd></td>
+              <td>Quit</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        <strong>It keeps score on itself.</strong> Each set of calls is appended to
+        <code>models/dashboard_log_&lt;model&gt;.json</code> with the wall-clock time at which it
+        becomes checkable. On a later refresh, once that candle has printed, the realized return
+        is measured from the real Binance close and classified with the <em>frozen train-only
+          thresholds</em>. Three deliberate design points: one log <strong>per model</strong> (blending
+        two networks' calls into one accuracy figure would describe neither); calls are issued once
+        per <strong>new candle</strong>, not once per refresh (or a 30-second refresh would append the
+        same prediction twelve times); and <code>--once</code> is a dry run that writes nothing, so
+        previewing never pollutes the track record.
+      </p>
+
+      <h3>8.2 · The React dashboard</h3>
+      <pre><code>pip install fastapi uvicorn            <span class="c"># optional — only this needs them</span>
+cd web &amp;&amp; npm install &amp;&amp; npm run build &amp;&amp; cd ..
+python src/server.py --serve-web       <span class="c"># http://127.0.0.1:8000</span>
+
+<span class="c"># or, for front-end work: Vite on :5173 proxying /api to uvicorn on :8000</span>
+python src/server.py                   <span class="c"># terminal 1</span>
+cd web &amp;&amp; npm run dev                  <span class="c"># terminal 2</span></code></pre>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Endpoint</th>
+              <th>Returns</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">GET /api/snapshot</td>
+              <td>Everything the UI needs, one round trip</td>
+            </tr>
+            <tr>
+              <td class="mono">GET /api/candles</td>
+              <td>OHLCV only</td>
+            </tr>
+            <tr>
+              <td class="mono">GET /api/prediction</td>
+              <td>The model read + the projected curve</td>
+            </tr>
+            <tr>
+              <td class="mono">GET /api/track-record</td>
+              <td>Resolved calls and the tallies</td>
+            </tr>
+            <tr>
+              <td class="mono">GET /api/metrics</td>
+              <td>Held-out metrics from <code>models/eval_summary.json</code></td>
+            </tr>
+            <tr>
+              <td class="mono">GET /api/stream</td>
+              <td>The snapshot again, as Server-Sent Events</td>
+            </tr>
+            <tr>
+              <td class="mono">GET /api/health</td>
+              <td>Liveness, model name, last fetch</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>Two views, one payload.</strong> The app opens on a simplified view, and a button in the top bar
+        switches to the advanced one. Both read the same <code>/api/snapshot</code>; neither computes anything the other
+        does not already have. The choice is remembered in <code>localStorage</code> per browser, guarded on both read
+        and write — a private window loses the preference, it does not break the page.</p>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>View</th>
+              <th>What it shows</th>
+              <th>Who it is for</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key"><strong>simple</strong> (default)</td>
+              <td>Two plain-language answers, the chart (price, projection, and the model's recorded projections as a
+                curve), and a six-row table of what the model expects at each distance.</td>
+              <td>Someone who has not read the README</td>
+            </tr>
+            <tr>
+              <td class="key"><strong>advanced</strong></td>
+              <td>The five-layer chart, both probability panels, two scorecards, the return distribution, held-out
+                metrics, the call log.</td>
+              <td>Reading the model rather than the answer</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The simple view is where the project's honesty rule gets tested hardest, because simplifying the
+        <em>presentation</em> must not simplify the <em>claim</em>. So the direction card says <strong>on the card, in
+          the same size type as the answer</strong> that the question is close to a coin flip and that always answering
+        NEUTRAL already scores ~52%. A view that dropped that line would be a better-looking lie than the advanced one.
+      </p>
+
+      <h4>Five layers on one shared time axis</h4>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Drawn</th>
+              <th>What it is</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">candlesticks</td>
+              <td>What the market did</td>
+            </tr>
+            <tr>
+              <td class="key">dashed violet line</td>
+              <td>The return head's projected close over the next six candles — a projected path, which is literally
+                what the model outputs</td>
+            </tr>
+            <tr>
+              <td class="key">dotted grey line</td>
+              <td>The same projection with <strong>zero</strong> return — the baseline the return head has to beat</td>
+            </tr>
+            <tr>
+              <td class="key">dotted violet rails</td>
+              <td>The 10/25/50/75/90th percentiles of <em>realised</em> returns on the <strong>train</strong> split,
+                conditional on the class the model predicts. A description of the training distribution,
+                <strong>not</strong> a confidence interval for this path.</td>
+            </tr>
+            <tr>
+              <td class="key">solid violet line</td>
+              <td>Every projection the dashboard has ever recorded, read back from <code>models/predictions.db</code> —
+                one point per candle, averaged over the windows that named it, and <strong>broken</strong> where the
+                dashboard was not running</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The projection and the no-change baseline are drawn nearly on top of each other, and that is the point: the
+        return head is worse than predicting no change at every horizon, so showing the projection alone would flatter
+        it.</p>
+
+      <h3>8.3 · The projection store</h3>
+      <p>The dashed curve is one window: what the model is saying <em>now</em>. On its own that says nothing about
+        whether the projections track the price or merely look plausible once, so every projection is written to SQLite
+        (<code>models/predictions.db</code>, stdlib <code>sqlite3</code>, no new dependency) and read back into the same
+        chart.</p>
+      <ul class="tight">
+        <li>One row per horizon per head per window, keyed <code>(anchor_ts, horizon, kind)</code>. Re-refreshing a
+          window is <code>INSERT OR IGNORE</code>, so it cannot double-count.</li>
+        <li><code>actual_close</code> is filled in once the target candle prints, so the store is self-contained:
+          prediction and outcome in the same row.</li>
+        <li>The chart line uses the <strong>direction head only</strong>. The activity head stores
+          <code>expected_pct = 0</code> by construction, so averaging its rows in would drag the curve towards "no
+          change" and make the model look worse than it is. That would be a bug in the chart, not a finding.</li>
+        <li>A gap longer than 4 candles is drawn as a <strong>break</strong>. Across an outage the model made no call,
+          and a line spanning it would imply otherwise.</li>
+        <li><code>--no-record</code> opens the file read-only if it exists and creates nothing if it does not — enforced
+          by SQLite (<code>mode=ro</code>), not only by a guard.</li>
+      </ul>
+      <p class="dim">It is local state — gitignored, not a result to read out of the repository.</p>
+
+      <h3>8.4 · The command-line readers</h3>
+      <pre><code><span class="c"># one-shot trend read on the newest candles</span>
+python src/inference.py --model models/gru_s42_best.keras
+python src/inference.py --min-confidence 0.5
+
+<span class="c"># TensorFlow-free: just show what the model would receive</span>
+python -c "from inference import build_live_input; build_live_input()"
+
+<span class="c"># the actual-vs-predicted chart</span>
+python src/plot_trend.py --horizon 90m --last 800
+python src/plot_trend.py --from 2026-01-01 --to 2026-03-01
+
+<span class="c"># validation + test metrics for a model already on disk</span>
+python src/evaluate.py --split both
+python src/evaluate.py --at "2025-08-01 12:00"     <span class="c"># one moment you choose</span>
+python src/evaluate.py --sample 20 --split test --seed 42</code></pre>
+      <p><code>--at</code> is the honest way to watch the model work on a single case: it finds the sample nearest that
+        moment, prints the six-horizon call <em>with per-horizon probabilities</em>, and shows what actually happened
+        next. It searches all splits and tells you which one the date landed in — if it lands in <strong>train</strong>
+        it says so and warns that a correct call there is memorisation, not evidence.</p>
+    </section>
+
+    <!-- ======================================================== 09 -->
+    <hr class="rule">
+    <section id="s9">
+      <div class="sec-head"><span class="num">09</span>
+        <h2>Running the project again, manually</h2>
+      </div>
+      <p class="sec-sub">Everything you need to bring this project back to life on a machine, in order. Commands are
+        copy-paste ready for PowerShell or bash from the repository root.</p>
+
+      <h3>9.0 · Prerequisites</h3>
+      <div class="scroll">
+        <table>
+          <caption>Verified on the machine this documentation was written from, 2026-09-28.</caption>
+          <thead>
+            <tr>
+              <th>Requirement</th>
+              <th>Version used</th>
+              <th>Needed for</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">Python</td>
+              <td class="mono">3.13.12</td>
+              <td>Everything. 3.10+ should work.</td>
+            </tr>
+            <tr>
+              <td class="key">numpy · pandas · scikit-learn · requests</td>
+              <td class="mono">2.4.4 · 3.0.2 · 1.9.1 · 2.34.2</td>
+              <td>The data pipeline. <strong>No deep-learning framework required.</strong></td>
+            </tr>
+            <tr>
+              <td class="key">rich</td>
+              <td class="mono">installed</td>
+              <td>The terminal dashboard</td>
+            </tr>
+            <tr>
+              <td class="key">TensorFlow / Keras</td>
+              <td class="mono">2.21.0 · 3.14.0</td>
+              <td>Training, evaluation, inference, both dashboards. <strong>CPU is enough</strong> — on native Windows
+                with TF ≥ 2.11 a GPU will not be used even if present.</td>
+            </tr>
+            <tr>
+              <td class="key">matplotlib</td>
+              <td class="mono">3.11.2</td>
+              <td><code>plot_trend.py</code> only. Writes PNG via the "Agg" backend, so no display is required.</td>
+            </tr>
+            <tr>
+              <td class="key">fastapi · uvicorn</td>
+              <td class="mono">0.139.0 · 0.50.2</td>
+              <td>The React dashboard's API only</td>
+            </tr>
+            <tr>
+              <td class="key">Node · npm</td>
+              <td class="mono">v24.14.1 · 11.11.0</td>
+              <td>The React app and its two checks. Node 18+ is enough.</td>
+            </tr>
+            <tr>
+              <td class="key">xgboost</td>
+              <td class="mono">3.4.1</td>
+              <td>Optional — the tree baseline inside notebooks 04 and 05</td>
+            </tr>
+            <tr>
+              <td class="key">Network</td>
+              <td class="mono">—</td>
+              <td>Reaching <code>data.binance.vision</code> and <code>api.binance.com</code>. <strong>No API key
+                  anywhere; Binance market data is public.</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout note">
+        <span class="h">Why TensorFlow is deliberately absent from requirements.txt</span>
+        <p>
+          The data pipeline, the leakage audit and the projection store are pure
+          numpy/pandas/scikit-learn, so a broken framework install can never take the
+          pipeline down with it. Everything under <code>src/</code> except
+          <code>train.py</code>, <code>evaluate.py</code>, <code>plot_trend.py</code>,
+          <code>dashboard.py</code>, <code>server.py</code> and
+          <code>inference.load_model()</code> imports no framework at all — and that
+          property is enforced by audit check 17.
+        </p>
+      </div>
+
+      <h3>9.1 · One-time setup</h3>
+      <pre><code><span class="c"># from the repository root</span>
+pip install -r requirements.txt
+pip install tensorflow            <span class="c"># training, evaluation, dashboards</span>
+pip install fastapi uvicorn       <span class="c"># optional — the React API only</span>
+pip install matplotlib xgboost    <span class="c"># optional — the chart and the tree baseline</span>
+
+cd web &amp;&amp; npm install &amp;&amp; cd ..      <span class="c"># only if you want the React dashboard</span></code></pre>
+
+      <h3>9.2 · The full rebuild, end to end</h3>
+      <p>This reproduces everything: the dataset, the audit, the models and the metrics. Times are the measured wall
+        clocks from <code>logs/</code> on a 12-core CPU with no GPU.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-body">
+            <h3>Download the raw candles</h3>
+            <div class="step-meta"><span class="chip net">needs network</span><span class="chip fast">~2 min</span><span
+                class="chip">no TensorFlow</span></div>
+            <pre><code>python src/data_download.py</code></pre>
+            <p>Fetches ~9 years of 15m klines, 317,919 candles, into <code>data/raw/btcusdt_15m_raw.csv</code>. Bulk
+              monthly archives first, daily archives for the open month, REST for the newest candles.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-body">
+            <h3>Build the dataset</h3>
+            <div class="step-meta"><span class="chip fast">82.5 s measured</span><span class="chip">no
+                TensorFlow</span><span class="chip">no network</span></div>
+            <pre><code>python src/pipeline.py
+
+<span class="c"># add --refresh to re-download first, and --save-3d to also write the</span>
+<span class="c"># multi-GB materialised tensors (off by default, on purpose)</span>
+python src/pipeline.py --refresh</code></pre>
+            <p>Runs the eight steps and writes all of <code>data/final/</code>. It reuses the cached raw CSV if present.
+              This step trains nothing and needs no framework.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-body">
+            <h3>Prove nothing leaked</h3>
+            <div class="step-meta"><span class="chip fast">12.9 s measured</span><span class="chip">no TensorFlow</span>
+            </div>
+            <pre><code>python src/audit_leakage.py        <span class="c"># must print 24/24 and exit 0</span></code></pre>
+            <p><strong>Do not proceed to training with a failing audit.</strong> A leaky dataset produces results that
+              look better than reality, which is worse than no result. Most failures mean the pipeline output is stale
+              relative to the code — re-run step 2 and audit again.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-body">
+            <h3>Time one epoch before committing to a full run</h3>
+            <div class="step-meta"><span class="chip tf">TensorFlow</span><span class="chip slow">90.8 s measured</span>
+            </div>
+            <pre><code>python src/train.py --probe</code></pre>
+            <p>Trains a single epoch on whatever data the other flags select, prints seconds per epoch and a projection
+              for 5/10/25/50 epochs, then exits without saving anything. This turns "how long will this take" from a
+              guess into a measurement. Measured here: <strong>78 s per epoch</strong>, 214 steps at 366 ms/step.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-body">
+            <h3>Train the ensemble</h3>
+            <div class="step-meta"><span class="chip tf">TensorFlow</span><span class="chip slow">≈53 min
+                measured</span></div>
+            <pre><code><span class="c"># the reported run — three seeds, averaged, full 218,515-sample split</span>
+python src/train.py --arch gru --seeds 42,43,44 --epochs 25 --patience 5 --batch 1024 --tag gru
+
+<span class="c"># cheaper alternatives</span>
+python src/train.py --arch gru                        <span class="c"># one seed, no ensemble</span>
+python src/train.py --arch both                       <span class="c"># GRU and LSTM, then pick on validation</span>
+python src/train.py --subset 60000 --epochs 15        <span class="c"># fast iteration — NOT a reportable result</span></code></pre>
+            <p>Writes <code>gru_s42_best.keras</code>, <code>gru_s43_best.keras</code>, <code>gru_s44_best.keras</code>,
+              plus <code>inference_bundle.json</code> naming all three members, and <code>train_metrics.json</code> with
+              the timings and the full test tables.</p>
+            <p class="dim"><code>--subset</code> takes the most recent N training samples, <strong>never a random
+                N</strong> — a random subset would break the chronological contract the whole project rests on. A subset
+              run prints a warning and is not a reportable configuration.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-body">
+            <h3>Evaluate it</h3>
+            <div class="step-meta"><span class="chip tf">TensorFlow</span><span class="chip fast">58.0 s measured</span>
+            </div>
+            <pre><code>python src/evaluate.py --split both
+python src/evaluate.py --at "2025-08-01 12:00"     <span class="c"># test one moment you choose</span></code></pre>
+            <p>Loads the saved <code>.keras</code> files and the frozen artefacts and re-measures from scratch. Nothing
+              is refitted, nothing is retrained, and it <strong>selects nothing</strong> — model choice belongs to
+              validation macro-F1 inside <code>train.py</code>. Refreshes <code>models/eval_summary.json</code>, which
+              the dashboards read to print measured caveats instead of asserting the model works.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-body">
+            <h3>Look at it live</h3>
+            <div class="step-meta"><span class="chip tf">TensorFlow</span><span class="chip net">needs
+                network</span><span class="chip fast">12.0 s for one frame</span></div>
+            <pre><code>python src/dashboard.py --once     <span class="c"># one frame, writes nothing — check it works first</span>
+python src/dashboard.py            <span class="c"># the interactive TUI</span></code></pre>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-body">
+            <h3>Serve the browser dashboard</h3>
+            <div class="step-meta"><span class="chip acc">Node + FastAPI</span><span class="chip net">needs
+                network</span></div>
+            <pre><code>cd web &amp;&amp; npm install &amp;&amp; npm run build &amp;&amp; cd ..
+python src/server.py --serve-web   <span class="c"># http://127.0.0.1:8000</span></code></pre>
+            <p>One URL serves both the built React app and the API.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout ok">
+        <span class="h">The whole thing as one block</span>
+        <pre style="margin:8px 0 0"><code>pip install -r requirements.txt
+pip install tensorflow fastapi uvicorn matplotlib
+
+python src/data_download.py
+python src/pipeline.py
+python src/audit_leakage.py                       <span class="c"># must be 24/24</span>
+
+python src/train.py --probe
+python src/train.py --arch gru --seeds 42,43,44 --epochs 25 --patience 5 --batch 1024 --tag gru
+
+python src/evaluate.py --split both
+python src/plot_trend.py
+python src/dashboard.py --once
+
+cd web &amp;&amp; npm install &amp;&amp; npm run build &amp;&amp; cd ..
+python src/server.py --serve-web                  <span class="c"># http://127.0.0.1:8000</span></code></pre>
+      </div>
+
+      <h3>9.3 · Verify the rebuild</h3>
+      <p>Five commands, all of which must exit 0. Together they cover the data, the model, the API, the store and the
+        browser app.</p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Proves</th>
+              <th class="num">Measured</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">python src/audit_leakage.py</td>
+              <td>24 leakage checks pass</td>
+              <td class="num">12.9 s</td>
+            </tr>
+            <tr>
+              <td class="mono">python src/_smoke_api.py</td>
+              <td>Starts the API and hits every endpoint</td>
+              <td class="num">25.7 s</td>
+            </tr>
+            <tr>
+              <td class="mono">python src/_check_store.py</td>
+              <td>Store idempotence, resolution, gap-breaking, read-only mode</td>
+              <td class="num">1.5 s</td>
+            </tr>
+            <tr>
+              <td class="mono">cd web &amp;&amp; npm run check</td>
+              <td>Every panel renders against a real payload, plus 10 degenerate ones</td>
+              <td class="num">1.1 s</td>
+            </tr>
+            <tr>
+              <td class="mono">cd web &amp;&amp; npm run check:markers</td>
+              <td>The chart marker ordering contract</td>
+              <td class="num">0.3 s</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>9.4 · "I only want to…"</h3>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>If you want to…</th>
+              <th>Run this</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">Rebuild the dataset only</td>
+              <td class="mono">python src/pipeline.py</td>
+            </tr>
+            <tr>
+              <td class="key">Refresh with new market data</td>
+              <td class="mono">python src/pipeline.py --refresh</td>
+            </tr>
+            <tr>
+              <td class="key">Check leakage after any change</td>
+              <td class="mono">python src/audit_leakage.py</td>
+            </tr>
+            <tr>
+              <td class="key">Retrain from scratch</td>
+              <td class="mono">python src/train.py --arch gru --seeds 42,43,44</td>
+            </tr>
+            <tr>
+              <td class="key">See how long training will take here</td>
+              <td class="mono">python src/train.py --probe</td>
+            </tr>
+            <tr>
+              <td class="key">Re-measure a model on disk</td>
+              <td class="mono">python src/evaluate.py --split both</td>
+            </tr>
+            <tr>
+              <td class="key">Interrogate one moment in history</td>
+              <td class="mono">python src/evaluate.py --at "2025-08-01 12:00"</td>
+            </tr>
+            <tr>
+              <td class="key">Redraw the chart</td>
+              <td class="mono">python src/plot_trend.py --horizon 90m --last 800</td>
+            </tr>
+            <tr>
+              <td class="key">Watch the model live</td>
+              <td class="mono">python src/dashboard.py</td>
+            </tr>
+            <tr>
+              <td class="key">Open the browser dashboard</td>
+              <td class="mono">python src/server.py --serve-web</td>
+            </tr>
+            <tr>
+              <td class="key">Record a run into logs/</td>
+              <td class="mono">python src/runlog.py --name evaluate -- python src/evaluate.py</td>
+            </tr>
+            <tr>
+              <td class="key">Change a knob (lookback, horizons, splits)</td>
+              <td>Edit <code>src/config.py</code>, then re-run steps 2 → 3 → 4 → 5</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <span class="h">If you change LOOKBACK or HORIZONS</span>
+        <p>
+          The purge is defined in terms of them, and <code>pipeline.py</code> asserts the
+          resulting invariant — so an inconsistent combination fails loudly instead of
+          producing a quietly leaky dataset. You must then re-run the pipeline, re-run the
+          audit, and <strong>retrain</strong>: the existing <code>.keras</code> files were
+          built for a 64-candle input and will not load against a different geometry.
+        </p>
+      </div>
+
+      <h3>9.5 · Recording a run</h3>
+      <p>The numbers this project reports are only worth anything if the run that produced them can be inspected. A log
+        written by hand is a claim; a log written by the command that produced it is evidence.</p>
+      <pre><code>python src/runlog.py --name train -- python src/train.py --arch gru
+python src/runlog.py --name evaluate --split both
+python src/runlog.py --name audit --title "Leakage audit" -- python src/audit_leakage.py</code></pre>
+      <p>Writes <code>logs/&lt;name&gt;.md</code> with the exact command, its exit code, the environment and the
+        verbatim stdout/stderr (with only the TensorFlow startup banner stripped). The <code>--</code> separator is
+        required: everything before it configures the wrapper, everything after it is the command. The log is written
+        <em>after</em> the command finishes and is never read back by any script — deleting <code>logs/</code> changes
+        no result.</p>
+
+      <h3>9.6 · Troubleshooting</h3>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Symptom</th>
+              <th>Cause and fix</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">Missing raw data</td>
+              <td>Run <code>python src/data_download.py</code> first, or <code>python src/pipeline.py --refresh</code>
+                to download and build in one go. Needs network access to <code>data.binance.vision</code> and
+                <code>api.binance.com</code>.</td>
+            </tr>
+            <tr>
+              <td class="key">The audit prints a FAIL</td>
+              <td>The failure text names the artefact and the measured value. <strong>Do not proceed.</strong> Re-run
+                <code>python src/pipeline.py</code> and audit again — most failures mean the pipeline output is stale
+                relative to the code.</td>
+            </tr>
+            <tr>
+              <td class="key">Shapes look wrong — <code>X_train</code> has more rows than <code>y_train</code></td>
+              <td>That is correct and expected. <code>X_*.npy</code> is a contiguous block and <code>starts_*.npy</code>
+                maps samples into it; gap-excluded windows leave holes. See section 4.6.</td>
+            </tr>
+            <tr>
+              <td class="key"><code>FileNotFoundError: Missing files in DATA_DIR: starts_train.npy</code></td>
+              <td>You have an older <code>data/final/</code>, or only the <code>.npy</code> feature arrays. Re-run the
+                pipeline and use the whole folder — the offsets are not recoverable from the block alone.</td>
+            </tr>
+            <tr>
+              <td class="key">Model gets ~54% directional accuracy — is that good?</td>
+              <td>Almost certainly not. That is close to the majority-class baseline on this test set, where NEUTRAL
+                alone is ~54%. Compare macro-F1 and the per-class recalls against the baselines the scripts print.</td>
+            </tr>
+            <tr>
+              <td class="key">The model predicts NEUTRAL most of the time</td>
+              <td>Expected, and consistent with the class priors. Class weighting already trades some of that for
+                recall; changing it further trades NEUTRAL accuracy for directional recall, which may be right for a
+                trading application and wrong for an accuracy metric. Make that choice explicitly, and only on
+                validation.</td>
+            </tr>
+            <tr>
+              <td class="key">TensorFlow reports no GPU</td>
+              <td>On native Windows with TF ≥ 2.11, GPU is unsupported. A CPU is sufficient — the reported run was
+                CPU-only.</td>
+            </tr>
+            <tr>
+              <td class="key">The terminal dashboard renders boxes as garbage</td>
+              <td>A legacy Windows console code page cannot encode the block-drawing glyphs. The dashboard detects this
+                and falls back to ASCII automatically.</td>
+            </tr>
+            <tr>
+              <td class="key">A React panel renders blank</td>
+              <td>The shape it expected and the shape it got have diverged. Run
+                <code>cd web &amp;&amp; npm run check</code> — it renders every panel against a captured payload and
+                prints which one failed.</td>
+            </tr>
+            <tr>
+              <td class="key">The SSR check warns the fixture is stale</td>
+              <td><code>web/_snapshot.json</code> is a <em>capture</em>, not a live read, and the check prints its age
+                past six hours. Re-capture with <code>python src/server.py --port 8099</code> then
+                <code>curl -s http://127.0.0.1:8099/api/snapshot -o web/_snapshot.json</code>.</td>
+            </tr>
+            <tr>
+              <td class="key">The chart crashes with <code>data must be asc ordered by time</code></td>
+              <td>Fixed, and guarded: <code>buildMarkers()</code> sorts, merges calls that share a candle and drops
+                unplaceable times. The order that caused it was neither ascending nor unique, because a window writes
+                its six direction horizons and then its four activity horizons, whose list restarts at +1. Run
+                <code>npm run check:markers</code>.</td>
+            </tr>
+            <tr>
+              <td class="key">Can I use this to trade?</td>
+              <td>No. There is no execution layer, no risk management, no position sizing and no backtest — and none is
+                claimed. This is a research pipeline. Treat any output as a measurement on historical data, not as
+                advice.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======================================================== 10 -->
+    <hr class="rule">
+    <section id="s10">
+      <div class="sec-head"><span class="num">10</span>
+        <h2>Configuration reference</h2>
+      </div>
+      <p class="sec-sub">Everything below lives in <code>src/config.py</code>. No other module hard-codes these.</p>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Group</th>
+              <th>Knobs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">Market</td>
+              <td><code>SYMBOL = "BTCUSDT"</code> · <code>INTERVAL = "15m"</code> ·
+                <code>FIRST_DATA_MONTH = "2017-08"</code> · <code>MICROSECOND_EPOCH_FROM = "2025-01"</code></td>
+            </tr>
+            <tr>
+              <td class="key">Features</td>
+              <td><code>RETURN_LAGS = [1,2,4,8,16,32]</code> · <code>VOL_WINDOWS = [16,32,96]</code> ·
+                <code>ATR_WINDOW = 14</code> · <code>RSI_WINDOW = 14</code> ·
+                <code>MACD_FAST/SLOW/SIGNAL = 12/26/9</code> · <code>BB_WINDOW/BB_STD = 20 / 2.0</code> ·
+                <code>EMA_FAST/MID/SLOW = 20/50/100</code> · <code>EMA_SLOPE_LAG = 4</code> ·
+                <code>VOLUME_SHORT/LONG = 16/96</code> · <code>RANGE_POSITION_WINDOW = 64</code> ·
+                <code>HIGH_LOW_LOOKBACK = 96</code> · <code>WARMUP_ROWS = 500</code></td>
+            </tr>
+            <tr>
+              <td class="key">Sequences</td>
+              <td><code>LOOKBACK = 64</code> · <code>SEQUENCE_STRIDE = 1</code> (fully rolling)</td>
+            </tr>
+            <tr>
+              <td class="key">Targets</td>
+              <td><code>HORIZONS = [1,2,3,4,5,6]</code> → 15m…90m ·
+                <code>DIRECTION_CLASSES = {0:DOWN, 1:NEUTRAL, 2:UP}</code> ·
+                <code>THRESHOLD_MODE = "train_quantile"</code> · <code>NEUTRAL_QUANTILE = 0.40</code> ·
+                <code>FIXED_THRESHOLD_BPS</code> (only used if mode is <code>fixed_bps</code>)</td>
+            </tr>
+            <tr>
+              <td class="key">Activity target</td>
+              <td><code>REGIME_ENABLED = True</code> · <code>REGIME_HORIZONS = [1,2,4,6]</code> ·
+                <code>REGIME_REF_WINDOW = 96</code> · <code>REGIME_THRESHOLD_QUANTILE = 0.50</code> ·
+                <code>REGIME_CLASSES = {0:QUIET, 1:ACTIVE}</code></td>
+            </tr>
+            <tr>
+              <td class="key">Splitting</td>
+              <td><code>TRAIN/VAL/TEST_FRACTION = 0.70 / 0.15 / 0.15</code> ·
+                <code>PURGE_SAMPLES = LOOKBACK + HORIZON_MAX = 70</code></td>
+            </tr>
+            <tr>
+              <td class="key">Scaling</td>
+              <td><code>SCALER_KIND = "standard"</code> · <code>CLIP_SIGMA = 5.0</code> ·
+                <code>SCALE_TARGETS = True</code></td>
+            </tr>
+            <tr>
+              <td class="key">Loss &amp; selection</td>
+              <td><code>DIRECTION_CLASS_WEIGHT_STRENGTH = 0.5</code> · <code>SELECTION_DIRECTION_WEIGHT = 0.5</code> ·
+                <code>SELECTION_REGIME_WEIGHT = 0.5</code></td>
+            </tr>
+            <tr>
+              <td class="key">Ensembling</td>
+              <td><code>ENSEMBLE_SEEDS = (42, 43, 44)</code></td>
+            </tr>
+            <tr>
+              <td class="key">Reproducibility</td>
+              <td><code>RANDOM_SEED = 42</code> · <code>SAVE_3D_ARRAYS = False</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="dim" style="font-size:13px">
+        <code>SAVE_3D_ARRAYS</code> defaults to False on purpose: the materialised
+        <code>(samples, LOOKBACK, features)</code> tensor is several GB while the equivalent
+        2D matrix is ~60 MB, which is exactly why it is never materialised.
+      </p>
+    </section>
+
+    <!-- ======================================================== 11 -->
+    <hr class="rule">
+    <section id="s11">
+      <div class="sec-head"><span class="num">11</span>
+        <h2>Environment &amp; reproducibility</h2>
+      </div>
+
+      <div class="grid g2">
+        <div class="card">
+          <span class="tag">Deterministic</span>
+          <p style="margin-top:6px">The <strong>entire data pipeline</strong>. Download, cleaning, features, targets,
+            split, scaler and thresholds contain no randomness. Re-running <code>python src/pipeline.py</code> on the
+            same raw CSV reproduces the dataset bit-for-bit.</p>
+          <p class="dim">Changing the raw data (a new Binance month) obviously changes the dataset, which is why the
+            metadata records the generation timestamp.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Not deterministic</span>
+          <p style="margin-top:6px"><strong>Model training.</strong> Even with seeds fixed, device, kernel selection and
+            reduction order introduce run-to-run variation. A difference of a fraction of a point between two runs means
+            nothing.</p>
+          <p class="dim">Re-run with several seeds before drawing a conclusion from a small gap — which is exactly why
+            the ensemble averages three rather than picking one.</p>
+        </div>
+      </div>
+
+      <h3>Recorded environment</h3>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">Pipeline environment</td>
+              <td>Python 3.13.12 · numpy 2.4.4 · pandas 3.0.2 · random seed 42</td>
+            </tr>
+            <tr>
+              <td class="key">Training environment</td>
+              <td>12 CPU cores, no GPU · TensorFlow 2.21.0 · Keras 3.14.0</td>
+            </tr>
+            <tr>
+              <td class="key">Platform</td>
+              <td>Windows 11 (10.0.26200)</td>
+            </tr>
+            <tr>
+              <td class="key">Rows</td>
+              <td>315,063 × 72</td>
+            </tr>
+            <tr>
+              <td class="key">Valid windows</td>
+              <td>312,165 (312,025 after the 140-sample purge)</td>
+            </tr>
+            <tr>
+              <td class="key">Split sizes</td>
+              <td>218,515 / 46,824 / 46,686 (+140 purged)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Portability notes worth keeping</h3>
+      <ul class="tight">
+        <li>Timestamps are stored as int64 epoch <strong>milliseconds</strong> precisely so the <code>.npy</code> files
+          contain no timezone objects and no pickle.</li>
+        <li>pandas 3.0 changed several behaviours this code had to accommodate: <code>pct_change</code>'s
+          <code>fill_method</code> removal (returns are computed explicitly), microsecond-resolution tz-aware datetimes
+          (epoch conversions cast through <code>datetime64[ms]</code> rather than dividing a tick count), and the
+          removal of <code>pd.io.common.file_exists</code>.</li>
+        <li>The human-readable CSV is rounded to 8 decimals. The <code>.npy</code> files are not rounded and are the
+          authoritative values.</li>
+        <li>A local run will not reproduce a Colab run exactly even with identical seeds — different device, different
+          kernel selection. Treat small differences as noise, not as a finding.</li>
+      </ul>
+    </section>
+
+    <!-- ======================================================== 12 -->
+    <hr class="rule">
+    <section id="s12">
+      <div class="sec-head"><span class="num">12</span>
+        <h2>Limitations and honest caveats</h2>
+      </div>
+      <p class="sec-sub">The list the project would rather you read before the results.</p>
+
+      <div class="grid g2">
+        <div class="card tight">
+          <span class="tag">Data</span>
+          <ul class="tight">
+            <li>One asset, one interval, one venue: BTCUSDT 15m on Binance spot. Nothing here demonstrates anything
+              about other assets, timeframes or exchanges.</li>
+            <li>643 missing candles (0.2019%). Reported and segmented around, never filled. The model has never seen
+              what happened during those windows.</li>
+            <li>Train spans 2017–2024 and test spans 2025–2026 — different market regimes, visibly so in the class
+              balance.</li>
+          </ul>
+        </div>
+        <div class="card tight">
+          <span class="tag">Features</span>
+          <ul class="tight">
+            <li>49 features from OHLCV and trade counts only. No order book, no funding rates, no open interest, no
+              on-chain, no macro or news. If the signal lives in data this project does not ingest, no model here can
+              find it.</li>
+            <li>Features are clipped at ±5σ for numerical stability, which damps exactly the extreme moves a trader
+              would care about.</li>
+            <li>Correlated-but-not-identical features were kept where they carried genuinely different information,
+              which affects tree-model importance interpretation.</li>
+          </ul>
+        </div>
+        <div class="card tight">
+          <span class="tag">Modelling</span>
+          <ul class="tight">
+            <li>Stride-1 windows mean consecutive samples share 63 of 64 candles. The sample count is <em>not</em> the
+              number of independent observations; any confidence interval that treats it as such is wrong.</li>
+            <li>No hyperparameter search is implemented. The defaults are reasonable starting points, not tuned values.
+            </li>
+            <li>No walk-forward retraining and no regime-aware modelling.</li>
+          </ul>
+        </div>
+        <div class="card tight">
+          <span class="tag">Claims</span>
+          <ul class="tight">
+            <li><strong>No profitability or trading-edge claim anywhere.</strong> Every number is a measurement on one
+              historical test period.</li>
+            <li>The return head is reported as <strong>failing</strong> — documented rather than quietly dropped.</li>
+            <li>The backtest is deliberately unimplemented. The confidence floor is measured to <strong>hurt</strong>,
+              and exposed as a control, not a tuning knob.</li>
+            <li>The live scorecard is measured, not asserted — but it is a small sample. Do not read a hit rate off
+              twenty calls.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <span class="h">The main weakness is the NEUTRAL bias</span>
+        <p>
+          Directional recall on test is 0.22–0.29 — better than the 0.18–0.22 measured before
+          the class-weighted loss was introduced, but still missing most directional moves.
+          That was the direct attack on this problem and it helped without solving it; a
+          different neutral band is the obvious next lever. <strong>Do not spend that effort
+            on the return head, which has no signal to recover in the first place.</strong>
+        </p>
+        <p>
+          And do not let the activity head's better number migrate into a directional claim.
+          It answers a question about volatility. It is not a trade.
+        </p>
+      </div>
+    </section>
+
+    <!-- ======================================================== 13 -->
+    <hr class="rule">
+    <section id="s13">
+      <div class="sec-head"><span class="num">13</span>
+        <h2>Glossary</h2>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Term</th>
+              <th>Meaning in this project</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="key">Sample / window</td>
+              <td>64 consecutive candles (16 h) of 49 features, plus its targets.</td>
+            </tr>
+            <tr>
+              <td class="key">Horizon</td>
+              <td>How far ahead a target looks: 15, 30, 45, 60, 75 or 90 minutes (1–6 candles).</td>
+            </tr>
+            <tr>
+              <td class="key">Segment</td>
+              <td>A contiguous run of real candles. A new segment starts at every gap, and neither a window nor a target
+                may cross one.</td>
+            </tr>
+            <tr>
+              <td class="key">Gap</td>
+              <td>Any discontinuity in the 15-minute grid — a candle the exchange never published.</td>
+            </tr>
+            <tr>
+              <td class="key">Purge / embargo</td>
+              <td>The 70 samples removed at each split boundary so no training label is resolved from a candle inside
+                the next split's feature windows.</td>
+            </tr>
+            <tr>
+              <td class="key">Block + offsets</td>
+              <td>The storage contract: <code>X_*.npy</code> is one contiguous 2D block and <code>starts_*.npy</code>
+                holds each sample's offset into it.</td>
+            </tr>
+            <tr>
+              <td class="key">Direction head</td>
+              <td>The 6 × 3 softmax head predicting DOWN / NEUTRAL / UP per horizon.</td>
+            </tr>
+            <tr>
+              <td class="key">Return head</td>
+              <td>The linear head predicting percent return per horizon. Measured to fail.</td>
+            </tr>
+            <tr>
+              <td class="key">Activity / regime head</td>
+              <td>The 4 × 2 head predicting QUIET / ACTIVE — "busier than this sample's own trailing 24 hours?"</td>
+            </tr>
+            <tr>
+              <td class="key">Macro-F1</td>
+              <td>F1 averaged over the three direction classes with equal weight. The honest headline direction metric
+                on an imbalanced three-class problem.</td>
+            </tr>
+            <tr>
+              <td class="key">Majority-class baseline</td>
+              <td>The score of always predicting the most common class. The floor any direction result must clear.</td>
+            </tr>
+            <tr>
+              <td class="key">Naive baseline</td>
+              <td>The score of always predicting the mean return. The floor any regression result must clear.</td>
+            </tr>
+            <tr>
+              <td class="key">Confidence floor</td>
+              <td>A setting that downgrades low-confidence directional calls to NEUTRAL. Measured to cost macro-F1
+                monotonically.</td>
+            </tr>
+            <tr>
+              <td class="key">Ensemble</td>
+              <td>The mean of the per-member softmax outputs of the three seed-trained GRUs — averaged, never picked.
+              </td>
+            </tr>
+            <tr>
+              <td class="key">Track record</td>
+              <td>The dashboard's own measured hit rate, scored against the frozen train-only thresholds once each
+                call's candle prints.</td>
+            </tr>
+            <tr>
+              <td class="key">Projection store</td>
+              <td><code>models/predictions.db</code> — every projection the dashboard ever made, with the realised close
+                once it exists.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======================================================== footer -->
+    <footer class="foot">
+      <p>
+        <strong>Research code.</strong> This project places no orders, sizes no positions, and
+        models no fees, slippage or funding anywhere. Nothing in it is investment advice, and
+        no profitability or trading-edge claim is made. Every figure quoted here was measured
+        on one historical test period and is reproduced in <code>logs/</code>.
+      </p>
+      <div class="row">
+        <span>BTCUSDT 15m short-term trend prediction · project usage &amp; architecture</span>
+        <a class="toplink" href="#top">↑ back to top</a>
+      </div>
+    </footer>
+
+  </div>
+</body>
+
+</html>

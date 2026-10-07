@@ -1,0 +1,1509 @@
+================================================================================
+ BTCUSDT 15m SHORT-TERM TREND PREDICTION  -  PROJECT USAGE GUIDE
+================================================================================
+ A leakage-audited data pipeline that prepares a Colab-ready dataset for
+ predicting future percentage return over 15/30/45/60/75/90 minutes, with a
+ DOWN / NEUTRAL / UP direction label as an auxiliary target.
+
+ Every number printed in this document was MEASURED from the real Binance
+ dataset by running this code. Nothing here is estimated, nothing is
+ back-filled, and no number is a promise.
+
+ The trained model results - including a regression head that measurably FAILS
+ to beat predicting the mean - are in section 16. They are reported as
+ measurements on one test period, next to the naive baseline each has to beat.
+================================================================================
+
+ CONTENTS
+   1.  What this project is (and what it is not)
+   2.  Requirements and setup
+   3.  Project structure - every file, and why it exists
+   4.  Quick start - eight commands, in order
+   5.  Where the data comes from
+   6.  Cleaning, gaps and the continuity policy
+   7.  Feature engineering - the 49 features
+   8.  Target engineering - returns and direction labels
+   9.  Sequence geometry - the "block + offsets" contract  [READ THIS ONE]
+  10.  The chronological split and the purge/embargo
+  11.  Scaling - fitted on the training split only
+  12.  Directional thresholds - train quantiles, frozen
+  13.  The final deliverables - exact file list and shapes
+  14.  Uploading to Google Colab
+  15.  Training - train.py, notebooks 04 and 05
+  16.  Reading the results honestly
+  17.  Inference on the newest candles - CLI and live terminal dashboard
+  18.  Model validation and accuracy metrics - evaluate.py  [READ THIS ONE]
+  19.  The actual-vs-predicted chart - plot_trend.py
+  20.  The leakage audit - what each check proves
+  21.  Configuration reference
+  22.  Reproducibility and environment
+  23.  Known limitations and honest caveats
+  24.  Troubleshooting (FAQ)
+
+
+================================================================================
+ 1.  WHAT THIS PROJECT IS (AND WHAT IT IS NOT)
+================================================================================
+
+ IT IS
+   * A data pipeline. It downloads the full public BTCUSDT 15-minute history
+     from Binance, validates it, engineers features, builds targets, splits it
+     chronologically, scales it, and writes a dataset ready for training.
+   * Explicitly leakage-audited. 24 automated checks re-run the real feature,
+     target, scaler and threshold code on deliberately corrupted data and
+     assert that nothing looks forward in time.
+   * Honest about gaps. Missing candles are reported and segmented around,
+     never interpolated or forward-filled.
+   * Ready for a GRU, an LSTM, XGBoost and a naive baseline. Notebook 04 trains
+     them in Google Colab (the reference path); notebook 05 trains the same
+     models locally for fast iteration.
+   * TRAINED. src/train.py has been run on the full 218,515-sample training
+     split and its output is in models/. Section 16 reports what it measured -
+     including the regression head, which does not beat predicting the mean.
+
+ IT IS NOT
+   * A trading system. There is no order execution, no API, no scheduler, no
+     database, no web frontend, no Docker, no CI. None of those are needed to
+     answer the research question. The one interface is a terminal dashboard
+     that READS the market; it places no orders and has no risk controls.
+   * A performance claim. See section 22.
+
+
+================================================================================
+ 2.  REQUIREMENTS AND SETUP
+================================================================================
+
+ The data pipeline - and ONLY the data pipeline - needs just this:
+     Python 3.10+          (this dataset was built with 3.13.12)
+     numpy, pandas, scikit-learn, requests
+
+     pip install -r requirements.txt
+
+     requirements.txt deliberately does NOT list TensorFlow or PyTorch, so
+     that a broken framework install can never take the pipeline down with it.
+     Everything under src/ except train.py, evaluate.py, dashboard.py and
+     inference.py is pure numpy/pandas/scikit-learn and imports no framework
+     at all. That property is enforced by leakage-audit check 17.
+
+ Training, evaluation and the dashboard need TensorFlow as well:
+
+     pip install tensorflow xgboost
+
+     A CPU is sufficient; a GPU is not required (and on native Windows with
+     TensorFlow >= 2.11 a GPU will not be used even if you have one). Training
+     on ~200k x 64 x 49 sequences on CPU is slow - on a 12-core machine it is
+     about 70-80 seconds per epoch, and both models early-stop inside 9
+     minutes each. src/train.py --probe times one epoch on your machine before
+     you commit to a full run.
+
+     Where you got TensorFlow from does not matter. The measured results in
+     sections 16 and 18 came from the base conda environment on Python 3.13.12
+     with TensorFlow 2.21.0 and Keras 3.14.0, CPU only.
+
+ Google Colab - the alternative training path:
+     TensorFlow and pandas ship with the runtime; notebook 04 installs XGBoost
+     if it is missing. You need to upload data/final/ (see section 14).
+
+ No API key is needed anywhere. Binance market data is public.
+
+
+================================================================================
+ 3.  PROJECT STRUCTURE - EVERY FILE, AND WHY IT EXISTS
+================================================================================
+
+ src/config.py
+     The single source of truth. Symbol, interval, feature windows, LOOKBACK,
+     HORIZONS, split fractions, PURGE_SAMPLES, SCALER_KIND, CLIP_SIGMA,
+     THRESHOLD_MODE, NEUTRAL_QUANTILE, RANDOM_SEED, output paths. No other
+     module hard-codes a constant - change a knob here and the whole pipeline,
+     the notebooks and inference follow.
+
+ src/data_download.py
+     Downloads Binance data. Prefers the data.binance.vision bulk archives
+     (one HTTP request per month instead of ~2,900 paginated REST calls), falls
+     back to daily archives for the current month and to REST /api/v3/klines
+     for the newest candles. Handles retries with backoff, pagination,
+     de-duplication and the Binance millisecond -> MICROSECOND timestamp
+     switch that took effect with the 2025-01 archive.
+
+ src/preprocessing.py
+     Validation and gap auditing. Type-checks the schema, coerces numerics,
+     drops invalid OHLC rows, sorts chronologically, de-duplicates, then
+     assigns a segment_id that increments at EVERY discontinuity. Produces a
+     ContinuityReport listing every gap.
+
+ src/features.py
+     49 features in 11 documented groups, all strictly backward-looking. The
+     deliberate exclusions are documented at the bottom of the file.
+
+ src/targets.py
+     Future percentage returns for the six horizons, gap-crossing target
+     invalidation, train-only thresholds, and the 3-class direction labels.
+
+ src/sequences.py
+     Zero-copy sliding-window view, gap-aware window validity, the
+     chronological split with purge, the train-only scaler, and
+     SequenceBatcher (lazy per-batch materialisation for Keras).
+
+ src/pipeline.py
+     The orchestrator. Eight steps, run this. Never imports TensorFlow.
+
+ src/audit_leakage.py
+     24 automated leakage checks. Exit code 0 only if all pass.
+
+ src/inference.py
+     Turns the newest candles into a six-horizon trend read. The input path
+     (fetch -> clean -> features -> scale) is TensorFlow-free and identical to
+     training. TensorFlow is imported lazily, inside load_model() only.
+
+ src/train.py
+     Headless training entry point - the script form of notebook 05. Same
+     data, same models, same metrics, but runnable from a terminal and
+     repeatable, which is what produces the .keras files in models/. Has a
+     --probe mode that times one epoch on this machine and exits.
+
+ src/evaluate.py
+     Model validation and accuracy metrics for a model already on disk. Loads
+     the saved .keras file plus the frozen artefacts, re-measures regression,
+     direction, per-class detail, confusion matrices, calibration and a
+     confidence-floor sweep - and never selects anything. Also has --at to
+     test one historical moment and --sample for N random windows. See
+     section 18.
+
+ src/plot_trend.py
+     Renders the actual-vs-predicted trend chart to a PNG: price, then the
+     ACTUAL and PREDICTED direction classes as colour bands on one time axis,
+     plus regression scatter, a reliability curve and rolling accuracy. Needs
+     matplotlib, which nothing else in src/ does. See section 19.
+
+ src/dashboard.py
+     The interactive terminal dashboard. Live Binance candles -> the same
+     cleaning/feature/scaling path -> the trained model -> a six-horizon read
+     that refreshes on a timer. It also scores its own past calls against what
+     the price actually did. See section 17.
+
+ notebooks/01_download_data.ipynb         acquire + sanity-check raw data
+ notebooks/02_feature_engineering.ipynb   gap audit + the 49 features
+ notebooks/03_targets_and_sequences.ipynb targets, thresholds, window geometry
+ notebooks/04_colab_training.ipynb        COLAB ONLY - the reference training run
+ notebooks/05_local_training.ipynb        same models, runnable locally
+
+ data/            all generated artefacts (raw -> processed -> final)
+ models/          trained .keras files, inference_bundle.json,
+                  train_metrics.json, eval_summary.json, and one
+                  dashboard_log_<model>.json track record per model
+
+
+================================================================================
+ 4.  QUICK START - EIGHT COMMANDS, IN ORDER
+================================================================================
+
+     # 0. dependencies
+     pip install -r requirements.txt
+
+     # 1. download ~9 years of 15m candles (~2 minutes, no API key)
+     python src/data_download.py
+
+     # 2. build the dataset (clean -> features -> targets -> split -> scale)
+     python src/pipeline.py
+
+     # 3. prove nothing leaked  (must print 22/22 and exit 0)
+     python src/audit_leakage.py
+
+     # 4. train (needs TensorFlow; see section 15)
+     python src/train.py --probe          # time one epoch, save nothing
+     python src/train.py --arch both      # GRU + LSTM, full split
+
+     # 5. evaluate it: validation + test metrics, confusion, calibration
+     python src/evaluate.py
+     python src/evaluate.py --at 2025-08-01     # test one moment you choose
+
+     # 6. chart the actual vs predicted trend (needs matplotlib; see section 19)
+     python src/plot_trend.py
+
+     # 7. watch it live (needs a trained model in models/)
+     python src/dashboard.py
+
+     Alternatively, step 4 can be notebooks/04_colab_training.ipynb (Colab) or
+     notebooks/05_local_training.ipynb (local). Upload data/final/ to Colab
+     first - see section 14.
+
+ Step 2 reuses the cached raw CSV if present. Pass --refresh to re-download.
+ Step 2 does not train anything and does not need TensorFlow. Steps 4 to 7
+ do - evaluating and charting both load a Keras model.
+
+
+================================================================================
+ 5.  WHERE THE DATA COMES FROM
+================================================================================
+
+ Source      Binance spot public market data
+ Symbol      BTCUSDT
+ Interval    15 minutes
+ History     2017-08-17 04:00 UTC  ->  2026-09-16 16:00 UTC
+ Access      no API key
+
+ Bulk archives are fetched from
+     https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/15m/
+ and, for the still-open month, the daily equivalents. Only the newest
+ candles that are not yet archived come from
+     https://api.binance.com/api/v3/klines
+
+ BINANCE TIMESTAMP UNITS - a real trap this code handles:
+     Until 2024-12 the kline `open_time` is in MILLISECONDS (13 digits).
+     From 2025-01 it is in MICROSECONDS (16 digits).
+ Both are normalised to timezone-aware UTC on load. Getting this wrong shifts
+ every recent timestamp by a factor of 1000, silently destroying the split.
+
+ RESULTS OF THE ACTUAL DOWNLOAD
+     raw candles written         317,919
+     span                        2017-08-17 04:00 -> 2026-09-16 16:00 UTC
+     10 columns                  timestamp, open, high, low, close, volume,
+                                 quote_asset_volume, number_of_trades,
+                                 taker_buy_base_volume, taker_buy_quote_volume
+     rows dropped in cleaning    81  (malformed / invalid OHLC / duplicates)
+
+ Written to:  data/raw/btcusdt_15m_raw.csv
+
+
+================================================================================
+ 6.  CLEANING, GAPS AND THE CONTINUITY POLICY
+================================================================================
+
+ THE RULE: A MISSING CANDLE IS NEVER FABRICATED.
+     No reindex-and-interpolate. No forward-filling prices. No synthetic
+     candles. If the exchange did not publish a candle, this project does not
+     invent one.
+
+ Instead, every discontinuity in the 15-minute grid starts a new SEGMENT.
+ `segment_id` increments at each one. Two things may never cross a segment
+ boundary:
+     * a sequence window  (the 64 candles fed to the model), and
+     * a target           (a future return measured across missing candles).
+
+ An honest gap is a small loss of data. A fabricated candle is a lie the model
+ will happily learn from.
+
+ MEASURED CONTINUITY REPORT
+     candles present             317,838
+     candles expected on grid    318,481
+     missing candles             643   (0.2019% of the grid)
+     discontinuities (gaps)      31
+       of which large (>=3)      30
+     largest single gap          215 candles = 54.0 hours
+     contiguous segments         32
+
+ The gaps are real Binance outages and maintenance windows, mostly short. The
+ largest, 54 hours, is a well-known exchange incident.
+
+ SEGMENT IDS ARE RECOMPUTED AFTER ROW DROPS
+     Dropping a row (a feature NaN, or a gap-crossing target) makes two
+     non-adjacent candles neighbours in the frame. The inherited segment_id
+     would not notice, and a window could then silently span that hole.
+     src/pipeline.py therefore rebuilds segment ids from the surviving
+     timestamps: 32 -> 56 contiguous runs on this dataset. Twenty-four holes
+     that existed only because of dropped rows became hard boundaries.
+
+ Written to:  data/processed/btcusdt_15m_clean.csv
+
+
+================================================================================
+ 7.  FEATURE ENGINEERING - THE 49 FEATURES
+================================================================================
+
+ TWO RULES GOVERN EVERY FEATURE
+
+   RULE 1 - BACKWARD-LOOKING ONLY.
+     Every feature at row t uses rows <= t. All primitives are trailing:
+     .shift(k) with k >= 1, trailing .rolling(), recursive .ewm().
+     This is not asserted, it is PROVEN: audit check 1 corrupts every row after
+     a cut point and confirms the features before it are bit-for-bit unchanged
+     (measured deviation: exactly 0.000e+00).
+
+   RULE 2 - NO ABSOLUTE PRICE LEVEL.
+     BTC ranges from roughly $4,000 to over $100,000 across this period. A raw
+     price input would let the model memorise which regime it is in rather than
+     learn behaviour, and would generalise terribly. Every price expression is
+     a return, a ratio, a percentage distance or a volatility.
+
+ THE 11 GROUPS  (49 columns, in this order)
+
+   returns      6   return_1, return_2, return_4, return_8, return_16, return_32
+                    log or simple returns over 15m .. 8h
+   volatility   6   volatility_16/32/96 (rolling std of 1-bar returns),
+                    atr_pct_14, plus longer-horizon realised volatility
+   trend        6   ema_20/50/100 distances as percentages, ema_slope ratios,
+                    price-vs-EMA normalised by ATR
+   momentum     4   rsi_14 (normalised to [-1,1]), macd histogram relative to
+                    price, rate-of-change measures
+   bollinger    4   bb_position (where price sits in the band), band width
+                    relative to price, band squeeze/expansion
+   volume       5   volume relative to its 16- and 96-bar averages, volume
+                    z-score, volume change, OBV-style slope
+   trades       4   trade count vs average, average trade size ratio, trade
+                    count change
+   orderflow    3   taker_buy_ratio (aggressive buy share), its deviation from
+                    its 16-bar mean, its 96-bar z-score
+   candle       4   upper/lower wick ratios, body ratio, close position in the
+                    candle's own range
+   range        3   position within the 64-bar (16h) range, position within the
+                    96-bar (24h) range, distance from the 24h high/low
+   time         4   cyclically encoded hour-of-day and day-of-week (sin/cos)
+
+ DELIBERATE EXCLUSIONS  (documented in full at the bottom of src/features.py)
+
+   body_pct = (close - open) / close
+       In a 24/7 market open[t] == close[t-1], so this duplicates return_1
+       with a correlation above 0.999. A duplicate feature is not neutral: it
+       silently doubles that direction's weight in any distance-based model.
+
+   buy_pressure = 2 * taker_buy_ratio - 1
+       An affine transformation of taker_buy_ratio, which is already a
+       feature. Affine duplicates buy nothing.
+
+   all absolute price levels
+       See RULE 2.
+
+ MEASURED FEATURE QUALITY
+     4,911 residual NaNs across 7 columns, all from indicator warmup or from
+     windows that overlap a gap. Rows containing them are dropped (2,775 rows
+     in total including warmup and unusable targets).
+     Columns affected: avg_trade_size_ratio_96 (2,088),
+     taker_buy_ratio_zscore_96 (2,088), taker_buy_ratio_dev_16 (486),
+     body_ratio (102), volume_change_1 (49), trade_count_change_1 (49),
+     taker_buy_ratio (49).
+
+ The first 500 rows are dropped anyway (WARMUP_ROWS) so that no recursive
+ indicator is still converging from its seed value.
+
+
+================================================================================
+ 8.  TARGET ENGINEERING - RETURNS AND DIRECTION LABELS
+================================================================================
+
+ THE RETURN TARGET
+
+     future_return_h[t] = 100 * ( close[t+h] / close[t] - 1 )        [percent]
+
+     h = 1 -> 15m      h = 4 -> 60m
+     h = 2 -> 30m      h = 5 -> 75m
+     h = 3 -> 45m      h = 6 -> 90m
+
+ A percentage return is predicted, NOT an exact price. Prices are
+ non-stationary and unbounded; returns are comparable across the whole history.
+
+ These six columns are the ONLY place future data is touched, and none of them
+ is ever fed back into a feature - verified by audit check 16, which asserts
+ that no target column appears among the model inputs.
+
+ GAP SAFETY
+     If close[t+h] lies in a different segment than close[t], the target is set
+     to NaN rather than silently measuring a return across missing candles.
+     636 targets were invalidated this way on the real data. The final 6 rows
+     of the file have no future close at all, by construction.
+
+ MEASURED RETURN DISTRIBUTION (315,063 labelled rows, percent)
+
+     horizon   mean      std     skew    kurtosis   p01      p99    %positive
+      15m     +0.0016   0.3915  +0.4465   83.69    -1.126   +1.101    50.31
+      30m     +0.0032   0.5495  +0.5957   90.63    -1.609   +1.583    50.59
+      45m     +0.0047   0.6649  +0.1450   51.42    -1.972   +1.926    50.71
+      60m     +0.0062   0.7638  +0.1616   47.63    -2.276   +2.245    50.86
+      75m     +0.0077   0.8486  +0.2150   47.88    -2.535   +2.474    50.93
+      90m     +0.0092   0.9228  +0.1061   37.21    -2.789   +2.705    51.01
+
+ READ THIS TABLE BEFORE EXPECTING ANYTHING FROM A MODEL:
+     * Std grows roughly with the square root of the horizon - 0.39% at 15m to
+       0.92% at 90m. That is the random-walk signature, and it is exactly what
+       the naive zero-return baseline's MAE will equal.
+     * Only ~50.3% of 15m returns are positive. A coin flip is a serious
+       baseline. There is no large drift to exploit.
+     * Kurtosis of 84 at 15m means extreme moves are enormously more common
+       than a normal distribution would suggest. Fat tails are the defining
+       property of this data, and they are why features are clipped (section
+       11) and why a single accuracy number tells you very little.
+
+ THE DIRECTION LABEL
+
+     0 = DOWN      return <  lower_threshold
+     1 = NEUTRAL   lower_threshold <= return <= upper_threshold
+     2 = UP        return >  upper_threshold
+
+ Thresholds come from the TRAIN split only (section 12) and are frozen. NaN
+ returns map to -1 so they stay trivially maskable.
+
+
+================================================================================
+ 9.  SEQUENCE GEOMETRY - THE "BLOCK + OFFSETS" CONTRACT   [READ THIS ONE]
+================================================================================
+
+ THE SHAPE OF ONE SAMPLE
+
+     X : (n_samples, 64, 49)     64 candles x 49 features = 16 hours of context
+     y : (n_samples, 6)          six future percentage returns
+     d : (n_samples, 6)          six DOWN/NEUTRAL/UP labels
+
+     Sample k uses 2D rows [ start_k , start_k + 63 ].
+     Its target is the target of ROW start_k + 63 - i.e. of the LAST candle in
+     the window. The model sees the past; it predicts from the end of it.
+
+ WHY THE 3D TENSOR IS NEVER STORED
+     A fully materialised (312,165, 64, 49) float32 tensor is
+        312165 * 64 * 49 * 4 bytes  =  3.92 GB
+     while the equivalent 2D matrix is about 60 MB. The 3D tensor is therefore
+     produced as a ZERO-COPY sliding-window view and materialised one batch at
+     a time by SequenceBatcher. Nothing duplicates the feature matrix.
+
+ ------------------------------------------------------------------------------
+ THE PART THAT IS EASY TO GET WRONG
+ ------------------------------------------------------------------------------
+ Windows that would straddle a data gap are EXCLUDED. That leaves HOLES in the
+ sequence of window-start indices. Consequently:
+
+     X_train.npy                is a CONTIGUOUS 2D BLOCK, not one row per sample
+     starts_train.npy           holds the window-start OFFSET of each sample
+                                inside that block
+
+     sample k  =  X_train[ starts_train[k] : starts_train[k] + LOOKBACK ]
+
+     NEVER  X_train[k : k + LOOKBACK]
+
+ On this dataset `starts_train` has 218,515 entries but the block has 221,413
+ rows, and the offset sequence contains 43 discontinuities. Slicing
+ X_train[k : k+64] would silently splice across one of those holes and
+ fabricate a window spanning missing market data - the precise failure this
+ project exists to avoid. The validation and test blocks happen to contain no
+ holes (all 31 gaps fall in the training period), but the code does not rely
+ on that.
+
+ THE OFFSETS ARE BLOCK-RELATIVE, NOT GLOBAL
+     starts_train[k] is measured from the start of X_train.npy, so
+     starts_train[0] == 0 - and likewise starts_val[0] == 0. Offsets from two
+     different splits are therefore NOT comparable: subtracting one from the
+     other is meaningless, and any "purge clearance" computed that way is
+     nonsense. (This is an easy trap: the offsets look global and the
+     arithmetic runs happily.)
+
+     To relate two splits in time, use timestamps_*.npy. Each entry is that
+     sample's TARGET time - the timestamp of the last candle in its window -
+     in absolute UTC, so differences between splits are real elapsed time.
+     Every window spans exactly LOOKBACK candles ending at that time, so both
+     window starts are shifted by the same LOOKBACK-1, and a timestamp
+     difference divided by 15 minutes is exactly the row difference between
+     the two window starts. Notebook 05 re-derives the purge invariant this
+     way, and the audit maps a window back to its absolute row index through
+     timestamps_all.npy.
+
+ The same applies to `y_*.npy`, `y_dir_*.npy` and `timestamps_*.npy`: they
+ already hold EXACTLY ONE ROW PER SAMPLE. Do not apply a [LOOKBACK-1:] offset
+ to them.
+
+ ------------------------------------------------------------------------------
+
+ WHY 64 CANDLES
+     64 x 15 minutes = 16 hours. Long enough to contain a full intraday
+     session's structure, short enough to keep the sequence tractable and the
+     tensor small.
+
+ WHY STRIDE 1
+     SEQUENCE_STRIDE = 1 means fully rolling: rows 0..63, then 1..64, and so
+     on. Consecutive samples are highly correlated, which inflates the
+     effective sample count. This is normal for financial sequence models, but
+     it means the 218,515 training samples do NOT represent 218,515 independent
+     observations. Do not read a confidence interval as if they did.
+
+ MEASURED WINDOW COUNTS
+     candidate windows                 315,000
+     valid windows (no gap, target)    312,165
+     excluded                            2,835
+
+ IMPLEMENTATION
+     src/sequences.py::valid_window_starts uses a cumulative sum of
+     "segment changed here" flags, so window validity is decided in O(n) time
+     and O(n) bytes - no (n_windows x 64) boolean matrix is ever allocated.
+
+
+================================================================================
+ 10.  THE CHRONOLOGICAL SPLIT AND THE PURGE/EMBARGO
+================================================================================
+
+ RULE: TIME ORDER IS NEVER SHUFFLED.
+     Training on the future to predict the past is the single most common way
+     to produce a financial ML result that looks brilliant and is worthless.
+     The split is a strictly monotonic slice of a time-ordered array:
+     train -> purge -> validation -> purge -> test.
+
+     Train period    2017-08-23 21:45 UTC  ->  2024-01-15 02:00 UTC
+     Validation      2024-01-15 19:45 UTC  ->  2025-05-17 13:30 UTC
+     Test            2025-05-18 07:15 UTC  ->  2026-09-16 14:30 UTC
+
+ MEASURED SPLIT SIZES
+     train   218,515
+     val      46,824
+     test     46,686
+     purged      140
+
+ WHY THE PURGE IS 70 SAMPLES AND NOT 6
+
+     This is subtler than it first appears. A sample's window occupies 64
+     candles, and its LABEL is resolved from candles up to 6 further candles
+     past the end of that window. So the last training sample's label is
+     computed from candles at rows
+
+         [ start + 63 ,  start + 63 + 6 ]  =  [ start + 63 , start + 69 ]
+
+     The first validation sample's FEATURE window begins at its own start. For
+     no training label to be resolved from any candle inside the validation
+     feature window, the separation must exceed LOOKBACK - 1 + HORIZON_MAX = 69
+     rows. Purging only HORIZON_MAX = 6 would leave a 57-row overlap in which
+     training labels are computed from candles the validation inputs also
+     summarise.
+
+     PURGE_SAMPLES is therefore set to LOOKBACK + HORIZON_MAX = 70. Two extra
+     benefits: the training and validation WINDOWS share no raw candle at all
+     (the strictest reading of "no overlap"), and the cost is negligible -
+     140 discarded samples out of 313,000, about 0.045%.
+
+     The pipeline asserts this invariant and refuses to run if it is violated,
+     so a future change to LOOKBACK or HORIZONS cannot silently break it.
+
+     Measured separation: 71 rows = 1,065 minutes at both boundaries, against a
+     required minimum of 70 rows.
+
+ VALIDATION vs TEST
+     Validation is for choosing the architecture, the hyperparameters and the
+     early-stopping epoch. Test is touched exactly once, at the end. If you
+     find yourself tuning against the test set, it has stopped being a test
+     set - this is why notebook 04 selects the model on validation macro-F1
+     and only then evaluates the winner on test.
+
+
+================================================================================
+ 11.  SCALING - FITTED ON THE TRAINING SPLIT ONLY
+================================================================================
+
+ THE RULE: NEVER FIT A SCALER ON THE COMPLETE DATASET.
+     Fitting on everything lets the mean and standard deviation of the test
+     period influence how the training data is represented. That is leakage,
+     and it is a particularly sneaky kind because the code still runs and the
+     scores still look fine.
+
+ WHAT IS DONE HERE
+     * StandardScaler, fitted on the rows that make up the TRAINING windows
+       and on nothing else: rows [0, 221,413) of the labelled frame.
+     * That range ends strictly before the first validation feature row
+       (221,420), with an explicit assertion guarding it.
+     * That leaves exactly 1 row of clearance: the last training label is
+       resolved from candles up to row 221,418, and validation inputs begin at
+       row 221,420. The purge is sized to be the minimum that is still safe -
+       PURGE_SAMPLES = LOOKBACK + HORIZON_MAX = 70 means the label reach (69
+       rows) always lands at least one row short of the next split. It is tight
+       by construction, not by accident, and audit check 11 re-verifies it.
+     * The SAME frozen scaler is then applied to validation and test.
+     * Scaled values are clipped to +/- 5 sigma. 0.329% of training values sit
+       at the clip bounds - a direct consequence of the kurtosis of 84.
+     * The scaler is saved to data/final/scaler.pkl and LOADED (never refit)
+       by the notebooks and by inference.
+
+ WHY CLIP AT ALL
+     A recurrent network fed a genuine 20-sigma outlier produces enormous
+     gradients and can destabilise training. Clipping is a numerical-stability
+     choice. It is a real modelling decision with a real cost - the largest
+     moves, which are the ones a trader would care most about, are damped - and
+     it is stated here rather than hidden.
+
+ TARGET SCALING
+     Returns are ~0.39% at 15m. Regressing directly on values that small makes
+     MSE gradients tiny, so the regression head trains against
+     target-scaler-normalised returns and predictions are inverted back to
+     percent before any metric is computed. The target scaler is also fitted on
+     train only. The raw unscaled returns remain the source of truth in the CSV
+     and in y_*.npy.
+
+ MEASURED
+     train scaled features: max|mean| = 0.0166  (0 expected)
+                            mean std   = 0.9305  (1.0 before clipping)
+     Audit check 12a additionally recomputes scaler(raw CSV features) from
+     scratch and confirms it reproduces the shipped X_*.npy blocks to within
+     3.81e-06, so the stored arrays provably are the frozen transformation.
+
+
+================================================================================
+ 12.  DIRECTIONAL THRESHOLDS - TRAIN QUANTILES, FROZEN
+================================================================================
+
+ THE PROBLEM WITH A FIXED THRESHOLD
+     Return dispersion grows with the square root of the horizon. A single
+     fixed basis-point threshold would leave 15m almost entirely NEUTRAL and
+     90m almost entirely directional - one unusable, the other degenerate.
+
+ THE SOLUTION
+     THRESHOLD_MODE = "train_quantile". For each horizon, the NEUTRAL band is
+     the central 40% of the TRAIN return distribution, giving roughly
+     30% DOWN / 40% NEUTRAL / 30% UP on train BY CONSTRUCTION.
+
+     THE TEST SET NEVER INFLUENCES THE THRESHOLD. It is computed once from
+     training targets, written into the metadata, and applied unchanged
+     everywhere. Audit check 5 proves this by wrecking all validation and test
+     targets and confirming the thresholds do not move by a single bit.
+
+ MEASURED THRESHOLDS
+     15m   [-0.1033%, +0.1087%]   = [-10.33, +10.87] bps
+     30m   [-0.1389%, +0.1491%]   = [-13.89, +14.91] bps
+     45m   [-0.1634%, +0.1796%]   = [-16.34, +17.96] bps
+     60m   [-0.1841%, +0.2034%]   = [-18.41, +20.34] bps
+     75m   [-0.2046%, +0.2288%]   = [-20.46, +22.88] bps
+     90m   [-0.2220%, +0.2505%]   = [-22.20, +25.05] bps
+
+ MEASURED CLASS BALANCE  (train thresholds applied unchanged)
+
+     split   horizon   DOWN      NEUTRAL    UP
+     train   all       30.00%    40.00%     30.00%     <- by construction
+     val     15m       28.15%    43.52%     28.33%
+     val     90m       28.48%    42.99%     28.53%
+     test    15m       23.69%    53.83%     22.48%
+     test    90m       25.31%    51.42%     23.27%
+
+ READ THIS TABLE CAREFULLY - IT IS THE MOST IMPORTANT ONE IN THIS DOCUMENT.
+     The thresholds were tuned to give 30/40/30 on train. Applied unchanged to
+     the test period they give roughly 24/54/22. That is a genuine distribution
+     shift between the two periods: the 2025-2026 market spent more time inside
+     small 15-minute moves than the 2017-2024 market did. No amount of
+     modelling removes this. It means:
+
+       * A model that always predicts NEUTRAL scores about 54% accuracy on the
+         test set while being completely useless. This is why notebook 04
+         reports macro-F1 and per-class precision/recall alongside accuracy,
+         and why the majority-class baseline is computed explicitly.
+       * Macro-F1, which weights all three classes equally, is the honest
+         headline metric here. Accuracy is not.
+       * A model that is well calibrated on validation may still be miscalibrated
+         on test purely because the class priors moved.
+
+
+================================================================================
+ 13.  THE FINAL DELIVERABLES - EXACT FILE LIST AND SHAPES
+================================================================================
+
+ Everything is written to data/final/.
+
+ UPLOAD THESE TO COLAB  (~76 MB total)
+
+   X_train.npy              (221,413, 49)  float32   43.4 MB  scaled block
+   X_val.npy                ( 46,887, 49)  float32    9.2 MB  scaled block
+   X_test.npy               ( 46,749, 49)  float32    9.2 MB  scaled block
+   starts_train.npy         (218,515,)     int64     1.7 MB  window offsets
+   starts_val.npy           ( 46,824,)     int64     0.4 MB  window offsets
+   starts_test.npy          ( 46,686,)     int64     0.4 MB  window offsets
+   y_train.npy              (218,515, 6)   float32   5.2 MB  returns, percent
+   y_val.npy                ( 46,824, 6)   float32   1.1 MB
+   y_test.npy               ( 46,686, 6)   float32   1.1 MB
+   y_dir_train.npy          (218,515, 6)   int8      1.3 MB  0=DOWN 1=NEUTRAL 2=UP
+   y_dir_val.npy            ( 46,824, 6)   int8      0.3 MB
+   y_dir_test.npy           ( 46,686, 6)   int8      0.3 MB
+   timestamps_*.npy         (n,)           int64               target time, epoch ms UTC
+   scaler.pkl                                         1.6 KB  StandardScaler
+   target_scaler.pkl                                  0.6 KB  StandardScaler
+   dataset_metadata.json                             11.7 KB  every statistic
+
+   timestamps_all.npy       (315,063,)     int64     2.5 MB  row index reference
+   segment_ids.npy          (315,063,)     int32     1.3 MB  for the audit
+
+ NOTE ON THE BLOCKS: X_train.npy has 221,413 rows but only 218,515 samples.
+ That is correct and expected - see section 9. The extra rows are the candles
+ between gap-excluded windows.
+
+ ALSO PRODUCED (not needed in Colab)
+
+   btcusdt_15m_dataset.csv        315,063 x 63, unscaled, human-readable,
+                                  rounded to 8 decimals          ~207 MB
+   feature_names.json             feature order, groups, target and label names
+
+ INTERMEDIATE ARTEFACTS
+
+   data/processed/btcusdt_15m_clean.csv              after validation + gaps
+   data/processed/btcusdt_15m_features.csv           + 49 features
+   data/processed/btcusdt_15m_features_targets.csv   + returns + labels
+
+ The CSV is 207 MB because it stores 61 float columns at 8 decimals for 315k
+ rows. It is for inspection and for Excel; the .npy files are what training
+ reads, because they preserve exact float32 values and dtype information that
+ a CSV round-trip would lose.
+
+
+================================================================================
+ 14.  UPLOADING TO GOOGLE COLAB
+================================================================================
+
+ RECOMMENDED - Google Drive (survives runtime resets)
+
+   1. Zip the folder:            data/final/
+   2. Upload the zip to          MyDrive/btc-trend-prediction/
+   3. In Colab, unzip it there, then run notebook 04 with USE_DRIVE = True
+      (the default). It mounts Drive and reads from
+      /content/drive/MyDrive/btc-trend-prediction
+
+ ALTERNATIVE - direct upload
+
+   Set USE_DRIVE = False and upload the files to /content/btc-trend-prediction.
+   This is lost when the Colab runtime disconnects, so prefer Drive.
+
+ IMPORTANT
+   * Upload the WHOLE data/final/ folder, including starts_*.npy. Without the
+     offsets the notebook cannot build a single valid window and will say so.
+   * Do NOT re-fit the scaler in Colab. It is already fitted and applied; the
+     notebook loads it and would be corrupted by a refit.
+   * Do NOT re-upload only X_*.npy and try to rebuild starts_*.npy by hand.
+     The offsets are not recoverable from the block alone.
+
+
+================================================================================
+ 15.  TRAINING - train.py, NOTEBOOKS 04 AND 05
+================================================================================
+
+ Three entry points train the same models on the same dataset. They differ only
+ in where they run and what they default to.
+
+   src/train.py                         the reference. Headless, scriptable,
+                                        full training split, saves to models/.
+   notebooks/04_colab_training.ipynb    the Colab equivalent. Full split,
+                                        saves to Drive.
+   notebooks/05_local_training.ipynb    the same models locally, CPU-friendly,
+                                        saves to models/.
+
+
+ SRC/TRAIN.PY - THE REFERENCE PATH
+
+     python src/train.py --probe               # time ONE epoch, save nothing
+     python src/train.py --arch gru            # GRU on the full split
+     python src/train.py --arch both           # GRU + LSTM, pick on validation
+     python src/train.py --subset 60000 --epochs 15
+
+   --probe trains a single epoch on whatever data the other flags select, prints
+   seconds per epoch and a projection for 5/10/25/50 epochs, then exits without
+   saving anything. Run it first on a new machine: it turns "how long will this
+   take" from a guess into a measurement. On the machine this was developed on
+   (12 CPU cores, no GPU) it reports about 70-80 s per epoch on the full
+   218,515-sample split.
+
+   --subset takes the most recent N training samples, NOT a random N. A random
+   subset would break the chronological contract the whole project rests on.
+   Any run with a subset prints a warning and is not a reportable configuration.
+
+   Architecture selection uses VALIDATION macro-F1 only. The test split is read
+   once, by the winner, at the very end.
+
+   Outputs, all into models/:
+       <arch>_best.keras        checkpoint on best val_loss
+       <arch>_multitask.keras   the winner, saved under its own name
+       inference_bundle.json    architecture, horizons, thresholds, scalers,
+                                train samples used, seed
+       train_metrics.json       timings, validation macro-F1 per arch, and the
+                                full test-set regression + direction tables
+
+   It ends by printing four questions to ask before quoting any number: did it
+   beat the zero-return baseline on MAE, did it beat the majority class on
+   MACRO-F1 (not accuracy), is any class collapsed, and was the test set touched
+   exactly once.
+
+
+ Notebook 04 refuses to run unless it detects Colab (or you explicitly set
+ ALLOW_LOCAL_TRAINING = 1). That guard is deliberate: the documented
+ configuration is the Colab one, and a silent local run would produce numbers
+ under a configuration this guide does not describe.
+
+ NOTEBOOK 05 - WHAT IS DIFFERENT
+
+   * No Colab guard. It runs wherever TensorFlow is importable.
+   * Data comes from the repo's own data/final/; nothing is uploaded.
+   * It saves .keras files to models/ - the default path for src/inference.py.
+   * SMOKE = True runs 1 epoch on a few thousand samples as a plumbing check.
+     The numbers from a SMOKE run mean nothing.
+   * SUBSET_TRAIN defaults to 60,000 - the most recent 60,000 training samples.
+     A subset run checks that the pipeline works and roughly what happens; it is
+     NOT a result to report. Set SUBSET_TRAIN = None for the full 218,515.
+   * RUN_LSTM defaults to False (it roughly doubles the time). RUN_XGBOOST
+     defaults to True.
+   * It reuses src/sequences.py::SequenceBatcher for windowing, so local
+     training and notebook 04 read the blocks through identical code.
+
+   A local run will not reproduce a Colab run exactly, even with every seed
+   fixed: different device, different kernel selection, different reduction
+   order. Treat small differences between the two as noise, not as a finding.
+
+   The subset is the most recent N samples, NOT a random N. It stays contiguous
+   and chronologically adjacent to the validation split, and it is still
+   strictly before the purge boundary - the test split is never involved in any
+   choice made locally.
+
+ BASELINE - the floors any real model must clear
+     * Regression: predict a zero return. Its MAE is exactly the mean absolute
+       return, which scales with horizon volatility (0.39% at 15m, 0.92% at
+       90m). If a model cannot beat this, it has learned nothing.
+     * Direction: always predict the majority training class, per horizon.
+
+ XGBOOST - a non-sequence reference
+     Each 64-candle window is compressed into a fixed-length vector: the last
+     candle plus mean, std, min and max of every feature across the window
+     (5 x 49 = 245 inputs). One regressor per horizon, trained with early
+     stopping on the validation split. This is a genuinely strong tabular
+     baseline and should not be assumed to lose to the recurrent models.
+
+ LSTM and GRU - the sequence models, and the primary comparison
+     Shared recurrent trunk, two heads:
+       return_head     linear, 6 outputs, MSE on SCALED returns
+       direction_head  softmax, 6 x 3 outputs, sparse categorical
+                       cross-entropy on the frozen direction labels
+     The multi-task setup is the point: the direction head regularises the
+     trunk toward representations that are useful for classification, while the
+     regression head keeps the magnitude information the direction labels throw
+     away.
+
+ MODEL SELECTION - on validation, never on test
+     The architecture with the higher mean validation macro-F1 wins. Only then
+     is the winner evaluated on test, once. The notebook prints a warning that
+     a small difference is a hypothesis, not a conclusion, and should be
+     re-run with different seeds before anything is read into it.
+
+ EVERYTHING IS REPORTED PER HORIZON
+     Never as a single pooled number. A model that is useful at 15m and useless
+     at 90m must be visible as exactly that. Metrics: MAE and RMSE in percent,
+     bias, correlation, accuracy, macro-F1, and per-class precision / recall /
+     F1, plus a separate confusion matrix per horizon.
+
+ SAVED AT THE END
+     {gru|lstm}_multitask.keras, plus inference_bundle.json containing the
+     architecture, lookback, feature order, horizons, direction classes,
+     thresholds and target-scaler statistics - everything inference needs.
+
+     Notebook 05 additionally writes local_run_metrics.json next to the weights:
+     the full test regression and direction tables, the naive baselines they
+     should be compared against, the validation macro-F1 of every architecture
+     tried, and the exact config (subset size, epochs, units, seed) that
+     produced them. Keep it with the .keras file - without it a saved model is
+     not traceable back to the run that made it.
+
+
+================================================================================
+ 16.  READING THE RESULTS HONESTLY
+================================================================================
+
+ A CHECKLIST TO RUN BEFORE BELIEVING ANY NUMBER
+
+   1. Did the model beat the naive zero-return baseline on MAE? If not, it has
+      not learned anything the mean does not already tell you.
+   2. Did it beat the majority-class baseline on macro-F1 - not accuracy? On
+      this test set, always-NEUTRAL scores about 54% accuracy while being
+      worthless (section 12).
+   3. Is it better than XGBoost on the same split? A recurrent architecture
+      that loses to gradient-boosted trees on tabular-ish features is a real
+      and common outcome, and reporting it is more useful than hiding it.
+   4. Are the per-horizon numbers coherent? A model that is strong at 15m and
+      at 75m but random at 30m is a red flag, not a discovery.
+   5. Does the confusion matrix show a collapsed class? A model that never
+      predicts DOWN will have a respectable-looking accuracy and a terrible
+      DOWN recall.
+   6. Was the test set touched more than once? If you looked at it, changed
+      something, and looked again, it is now a validation set with extra steps.
+
+ WHAT A GOOD RESULT WOULD LOOK LIKE
+     Directional accuracy meaningfully above the majority-class baseline, a
+     macro-F1 above the majority-class macro-F1 at several horizons, and an MAE
+     below the naive baseline - all on the test split, all measured once.
+
+
+ THE ACTUAL RESULT  (src/train.py --arch both, full training split)
+
+ Measured on the 46,686-sample held-out test set, 2025-05-18 -> 2026-09-16.
+ Environment: 12 CPU cores, no GPU, TensorFlow 2.21.0 / Keras 3.14.0, about
+ 70-80 s per epoch. GRU early-stopped after 7 epochs (best 2), LSTM after 8
+ (best 3). Validation macro-F1 picked the GRU: 0.4134 vs LSTM 0.4080 - a gap
+ small enough to be noise, not a finding.
+
+ DIRECTION HEAD - it works, modestly.
+
+     horizon   majority-class macro-F1   GRU macro-F1
+       15m            0.2333                0.4109
+       30m            0.2287                0.4072
+       45m            0.2278                0.4053
+       60m            0.2259                0.3991
+       75m            0.2266                0.4019
+       90m            0.2264                0.3987
+
+     Accuracy, for completeness: 0.5238 - 0.5527 against a 0.5125 - 0.5383
+     majority-class baseline. Beating the baseline by 1.4 - 2.4 points is why
+     macro-F1 is the headline here and accuracy is not.
+
+     It is heavily NEUTRAL-biased. Per-class recall at 15m: NEUTRAL 0.856,
+     DOWN 0.186, UP 0.214. DOWN/UP precision ~0.36-0.37. It catches a
+     directional move roughly one time in five. Real signal, and weak.
+
+ REGRESSION HEAD - it does NOT work. This is reported, not hidden.
+
+     MAE in percent return, lower is better. naive_zero = always predict the
+     mean.
+
+     horizon   naive_zero     GRU        verdict
+       15m      0.145945     0.146345    WORSE
+       30m      0.205102     0.206040    WORSE
+       45m      0.249220     0.251838    WORSE
+       60m      0.287304     0.289595    WORSE
+       75m      0.321510     0.325719    WORSE
+       90m      0.352292     0.356548    WORSE
+
+     Worse than predicting the mean at every horizon. Predicted-vs-actual
+     correlation is 0.010 - 0.026, i.e. nothing. The head was trained as an
+     auxiliary task to shape the shared trunk; it is not a usable forecast.
+     This is why src/dashboard.py prints a measured caveat next to its
+     'expected' column instead of presenting that number as a prediction.
+
+ WHAT THIS ESTABLISHES
+     16 hours of 15m candles contain SOME information about the direction of
+     the next 15-90 minutes that a recurrent network can extract, on one test
+     period, under a leakage-audited split.
+
+ WHAT IT DOES NOT ESTABLISH
+     Profitability. One regime, low directional recall, and no fees, slippage
+     or funding modelled anywhere. A macro-F1 of 0.41 on a three-class problem
+     is a long way from a trading edge.
+
+ WHAT A GOOD RESULT WOULD STILL NOT MEAN
+     That the strategy makes money. Directional accuracy ignores magnitude: a
+     model can be right 55% of the time and lose money if its correct calls are
+     small and its wrong ones are large. Then there are fees on both legs,
+     slippage, funding, and the fact that the test period is one specific
+     regime. The notebook contains an intentionally empty backtest scaffold
+     describing what would need to be built; no backtest result is produced or
+     claimed.
+
+
+================================================================================
+ 17.  INFERENCE ON THE NEWEST CANDLES - CLI AND LIVE TERMINAL DASHBOARD
+================================================================================
+
+     # TensorFlow-free: just show what the model would receive
+     python -c "from inference import build_live_input; build_live_input()"
+
+     # One-shot CLI read, with a trained model in models/
+     python src/inference.py --model models/gru_multitask.keras
+     python src/inference.py --min-confidence 0.5
+
+     # Interactive live dashboard (the same model, refreshing on a timer)
+     python src/dashboard.py
+     python src/dashboard.py --interval 60 --min-confidence 0.4
+     python src/dashboard.py --once      # one frame, no UI, writes nothing
+
+ The input path fetches the newest candles from the Binance REST API, then runs
+ them through the SAME cleaning, feature and scaling code used for training, and
+ returns a single (1, 64, 49) scaled window. Consistency with training is the
+ whole point: a second, "simplified" feature implementation for inference is a
+ classic source of silent train/serve skew.
+
+ It uses the newest CONTIGUOUS segment only, and refuses to run if fewer than
+ 64 usable candles remain after warmup.
+
+ TensorFlow is imported inside load_model() and nowhere else, so importing this
+ module on a machine without TensorFlow works fine. `--min-confidence` downgrades
+ weak directional calls to NEUTRAL - the "no-trade zone" a real backtest would
+ have to honour.
+
+ This is a research helper, not a production service: no API, no scheduler, no
+ order execution, by design.
+
+
+ THE LIVE DASHBOARD (src/dashboard.py)
+
+ Panels: last candle/close/change, a 16-hour price sparkline, the six-horizon
+ prediction with per-horizon probabilities, the live scorecard, and the recent
+ calls log.
+
+     r  refresh now                  i  cycle refresh interval
+     c  cycle confidence floor       m  cycle the models in models/
+     l  toggle the log panel         x  clear this model's track record
+     q  quit
+
+ ABOUT THE 'c' KEY. It raises a floor: any call whose top probability is below
+ it displays as NEUTRAL instead of DOWN or UP. It is offered as a control you
+ can test, NOT as a feature that improves the output - src/evaluate.py swept it
+ on both splits and raising it costs macro-F1 monotonically while barely moving
+ accuracy. Whenever the floor is non-zero the dashboard prints that measured
+ caveat above the prediction table. Section 18 has the table.
+
+ The dashboard reuses inference.build_live_input() and inference.predict_proba()
+ rather than reimplementing any part of the input path, so what it shows cannot
+ drift from what training did. The scaler is loaded from data/final/scaler.pkl
+ and never refitted.
+
+ IT KEEPS SCORE ON ITSELF. Each set of calls is appended to
+     models/dashboard_log_<model>.json
+ together with the wall-clock time at which it becomes checkable. On a later
+ refresh, once that candle has actually printed, the realized return is measured
+ from the real Binance close and classified with the FROZEN train-only
+ thresholds - the same ones the labels were built from. The scorecard is that
+ tally, shown next to the 40% majority-class baseline taken from the metadata.
+
+ Three deliberate design points:
+
+   1. One log PER MODEL. Blending two networks' calls into a single accuracy
+      figure would describe neither of them.
+   2. Calls are issued once per NEW CANDLE, not once per refresh - otherwise a
+      30-second refresh would append the same prediction twelve times and
+      inflate the scorecard.
+   3. --once is a dry run. It prints one frame and writes nothing, so previewing
+      never pollutes the track record.
+
+ The scorecard is a small live sample and will be noisy. It is measured, not
+ asserted - but do not read a hit rate off twenty calls.
+
+ On a legacy Windows console the code page cannot encode the block-drawing
+ glyphs; the dashboard detects this and falls back to ASCII so it still renders.
+
+
+================================================================================
+ 18.  MODEL VALIDATION AND ACCURACY METRICS - evaluate.py
+================================================================================
+
+     python src/evaluate.py                  # the canonical model, val + test
+     python src/evaluate.py --split val      # validation only
+     python src/evaluate.py --split test     # test only
+     python src/evaluate.py --model models/lstm_best.keras
+     python src/evaluate.py --all            # every model, compared
+     python src/evaluate.py --at 2025-08-01  # test ONE moment you choose
+     python src/evaluate.py --sample 20 --split test --seed 42
+     python src/evaluate.py --csv models/eval.csv --json-out models/eval.json
+
+
+ WHY A SEPARATE SCRIPT FROM train.py
+   train.py trains and, incidentally, reports the metrics of the model it just
+   built. evaluate.py answers a different question: "the model is already on
+   disk - what does it actually do?" It loads the saved .keras file and the
+   frozen artefacts from data/final/ and re-measures from scratch. Nothing is
+   refitted, nothing is retrained, and the model is not selected here.
+
+   That separation is the point. Running evaluate.py twice on an unchanged
+   model is harmless and should give identical numbers. Running it, changing
+   the model because of what you saw, and running it again means the TEST split
+   has quietly become a second validation split - the leak is in that loop, not
+   in the code. train.py selects on validation macro-F1; evaluate.py only
+   measures. Section 16 explains why this matters.
+
+
+ WHAT IT PRINTS, PER SPLIT
+   REGRESSION     MAE / RMSE / bias / correlation per horizon, each next to the
+                  naive "always predict the mean" baseline, with the delta.
+   DIRECTION      accuracy and macro-F1 per horizon next to the majority-class
+                  baseline, then per-class precision / recall / F1.
+   CONFUSION      3x3 counts with row percentages, one per horizon, so you can
+                  read recall straight off the diagonal.
+   CALIBRATION    every prediction bucketed by the model's own top probability,
+                  with the realised accuracy in that bucket. This answers "is
+                  the confidence meaningful?" - if accuracy rises with
+                  confidence, yes.
+   FLOOR SWEEP    what the dashboard's 'c' key (confidence floor) buys you.
+
+
+ MEASURED RESULT - THE CONFIDENCE FLOOR DOES NOT HELP
+   The dashboard lets you raise a confidence floor: any call below it displays
+   as NEUTRAL. It sounds prudent. It was measured, and on this model it is a
+   straight loss. Mean over the six horizons:
+
+                        macro-F1   accuracy      commits to a direction
+       VALIDATION
+        floor 0.00         0.4134     0.4746            37.9%
+        floor 0.38         0.3844     0.4741            27.5%
+        floor 0.50         0.2254     0.4402             2.0%
+        floor 0.70         0.2017     0.4338             0.0%
+        always-NEUTRAL baseline         0.4338
+
+       TEST
+        floor 0.00         0.4039     0.5345            26.1%
+        floor 0.38         0.3681     0.5370            17.3%
+        floor 0.50         0.2402     0.5226             1.0%
+        floor 0.70         0.2281     0.5202             0.0%
+        always-NEUTRAL baseline         0.5202
+
+   Macro-F1 falls monotonically as the floor rises, on BOTH splits, and
+   accuracy is essentially flat - the small test-set bump at 0.38 costs 9
+   points of macro-F1 to buy 0.25 points of accuracy. The reason is that
+   downgrading a weak DOWN or UP call to NEUTRAL removes exactly the scarce
+   thing the model is being measured on: DOWN and UP recall are already the
+   bottleneck (0.18-0.22 on test), while NEUTRAL is already over-predicted.
+   Removing rare-class calls cannot help a macro-averaged metric.
+
+   So the 'c' key is offered as a control you can test, not as a feature that
+   improves the output, and the dashboard prints this measured caveat above the
+   prediction table whenever the floor is non-zero.
+
+   Note this does NOT contradict the calibration table. Calibration says the
+   probability is informative WITHIN the model's own argmax calls (accuracy
+   rises from 0.37 to 0.82 across the confidence buckets on test). The floor is
+   a different operation - it overrides those argmax calls - and it is the
+   override that costs. Both statements are measurements; they measure
+   different things.
+
+
+ MEASURED RESULT - THE REGRESSION HEAD HAS NO USABLE SKILL
+   Reported in full in section 16. evaluate.py reproduces it independently:
+   MAE is worse than predicting the mean at 6/6 horizons on test, and the
+   correlation between predicted and actual return is 0.010-0.026. The
+   dashboard states this above the prediction table, citing the measured file.
+
+
+ --at: TEST ONE MOMENT YOU CHOOSE
+   This is the direct way to watch the model work on a single case.
+
+     python src/evaluate.py --at "2025-08-01 12:00"
+
+   Finds the sample whose target time is nearest that moment, runs the model on
+   its 64-candle window, and prints the six-horizon call next to what actually
+   happened:
+
+      window ends  2025-08-01 11:45 UTC   (last of 64 candles = 16h of history)
+      split        TEST   (sample #7,219)
+       horizon  model says          conf    predicted     actual   actual class
+       --------  ------------------------   ---------- ----------   --------------
+            15m  NEUTRAL  ok        43.4%      -0.037%    -0.044%   NEUTRAL
+                 NEUTRAL 0.43  DOWN 0.37  UP 0.20
+            30m  NEUTRAL  MISS      42.9%      -0.060%    +0.331%   UP
+       ...
+       direction: 2/6 horizons correct (chance-level would be about 3/6 by
+                  always saying NEUTRAL)
+
+   Three things it does deliberately:
+     * It searches ALL splits, then tells you which one the date landed in. If
+       it lands in TRAIN it says so and warns that a correct call there is
+       memorisation, not evidence.
+     * The probabilities are printed per horizon, so you can see whether the
+       call was close or a coin-flip. The softmax bug documented in section 15
+       was caught exactly this way - the three numbers did not sum to 1.
+     * The comparison line is the majority-class baseline, not 33%. On a
+       three-class problem where one class is ~52% of the data, 33% is not the
+       bar.
+
+ --sample: TEST N RANDOM WINDOWS
+     python src/evaluate.py --sample 20 --split test --seed 42
+
+   Same output, N times, seeded so it reproduces. It prints the always-NEUTRAL
+   baseline for the split underneath, and says outright that 20 windows is too
+   few to conclude anything. It is a sanity check, not a measurement - the
+   aggregate tables are the measurement.
+
+
+ THE SUMMARY FILE
+   Every run refreshes models/eval_summary.json (small - just macro-F1,
+   accuracy, the baseline and the floor sweep per model per split). The live
+   dashboard reads it to print measured caveats instead of asserting the model
+   works. Use --no-save to skip it. The full tables go to --csv / --json-out.
+
+
+================================================================================
+ 20.  THE LEAKAGE AUDIT - WHAT EACH CHECK PROVES
+================================================================================
+
+     python src/audit_leakage.py
+
+ Exit code is 0 only if every check passes, so it can gate a re-run. The checks
+ come in two kinds.
+
+ DYNAMIC - real functions re-executed on synthetic data whose future is
+ deliberately corrupted:
+
+   1  Features are strictly backward-looking. Every row after a cut point is
+      multiplied by 1.37; the features before it must be bit-for-bit identical.
+      Measured max deviation: 0.000e+00.
+   2  future_return_h[t] == 100*(close[t+h]/close[t]-1), verified against a
+      directly computed reference. Measured deviation: 0e+00 for all six.
+   3  A target that would span a data gap is NaN.
+   4  Scaler statistics do not depend on validation/test rows. Fitting on train
+      before and after wrecking all later rows gives identical mean_/scale_.
+   5  Directional thresholds do not depend on validation/test targets. Wrecking
+      all later targets does not move them.
+   6  Splits are chronological and non-overlapping.
+
+ STATIC - properties of the artefacts the pipeline actually wrote:
+
+   7  All expected artefacts exist.
+   8  Array shapes match (n_samples, n_features) / (n_samples, n_horizons).
+   9  No NaN or Inf anywhere in the final scaled arrays.
+  10  Train < Validation < Test in wall-clock time - no shuffle.
+  11a Timestamp arrays are plain int64 epoch milliseconds, with no pickled
+      timezone objects.
+  11  The purge separates the splits: the separation must exceed
+      LOOKBACK - 1 + HORIZON_MAX rows for labels, and LOOKBACK rows for
+      windows. Measured: 71 rows at both boundaries against a 70-row minimum.
+  12a X_*.npy is reproduced by recomputing scaler(raw CSV features) from
+      scratch. Measured max deviation 3.81e-06.
+  12  The scaler really was fitted on train: max|mean| 0.0166, mean std 0.9305
+      (1.0 before the +/-5 sigma clip), 0.329% of values at the clip bounds.
+  13  Direction labels reproduce exactly from the stored return and the frozen
+      thresholds. Zero mismatches.
+  14  Every class is populated at every horizon in every split - no empty class
+      silently inflating accuracy.
+  15  dataset_metadata.json contains all ten required sections.
+  16  No target column appears among the model features.
+  17  No MODULE-LEVEL TensorFlow or PyTorch import exists anywhere in src/.
+      Deliberate lazy imports inside functions (inference.load_model,
+      train.main) are reported, not flagged - that is what keeps the data
+      pipeline itself importable on a machine with no TensorFlow.
+  18  Thresholds are declared as train-derived in the metadata.
+  19  Every window offset stays inside its block - no slice can run past the
+      end of the array.
+  20  No sequence window straddles a data gap. This rebuilds the absolute row
+      index of each window from its saved target timestamp and requires the
+      first and last candle to share a segment id. All 312,025 windows checked,
+      0 crossings.
+  21  The regime (activity) target is backward-looking and gap-safe. It is
+      rebuilt from RAW CLOSES on the clean candle series - a second code path,
+      so a bug inside src/regime.py cannot validate itself - and checked five
+      ways: the trailing reference is backward-only by truncation, the forward
+      window starts at t+1 by zeroing the present candle, no ratio is computed
+      across a real market gap and none the market defines is missing, the
+      frozen thresholds are the train medians over the rows the train samples
+      actually use, and the shipped labels are exactly threshold(ratio).
+      It also DISCLOSES the one place the labels are not a function of the
+      shipped rows alone: 4,441 rows (1.41%) have a window covering a candle
+      the dataset dropped. Those labels still describe the real market, which
+      is the point - but they are counted and bounded at 2%, so a regression
+      that made most labels depend on absent candles would fail here rather
+      than quietly inflate the headline.
+  22  The regime classes are balanced across every split, which is what makes
+      ~0.50 the baseline and any excess accuracy skill rather than a majority
+      class. Largest deviation from 50/50: 0.69pp.
+
+ CURRENT RESULT: 24 / 24 passing.
+
+
+================================================================================
+ 21.  CONFIGURATION REFERENCE
+================================================================================
+
+ Everything below lives in src/config.py. Nothing else hard-codes these.
+
+ MARKET
+   SYMBOL = "BTCUSDT"              INTERVAL = "15m"
+   FIRST_DATA_MONTH = "2017-08"    MICROSECOND_EPOCH_FROM = "2025-01"
+
+ FEATURES
+   RETURN_LAGS = [1,2,4,8,16,32]   VOL_WINDOWS = [16,32,96]
+   ATR_WINDOW = 14                 RSI_WINDOW = 14
+   MACD_FAST/SLOW/SIGNAL = 12/26/9 BB_WINDOW/BB_STD = 20 / 2.0
+   EMA_FAST/MID/SLOW = 20/50/100   EMA_SLOPE_LAG = 4
+   VOLUME_SHORT/LONG = 16/96       RANGE_POSITION_WINDOW = 64
+   HIGH_LOW_LOOKBACK = 96          WARMUP_ROWS = 500
+
+ SEQUENCES
+   LOOKBACK = 64                   SEQUENCE_STRIDE = 1
+
+ TARGETS
+   HORIZONS = [1,2,3,4,5,6]         -> 15m, 30m, 45m, 60m, 75m, 90m
+   FUTURE_RETURN_COLUMNS / DIRECTION_COLUMNS generated from HORIZONS
+   DIRECTION_CLASSES = {0:"DOWN", 1:"NEUTRAL", 2:"UP"}
+   THRESHOLD_MODE = "train_quantile"     NEUTRAL_QUANTILE = 0.40
+   FIXED_THRESHOLD_BPS = {...}            used only if mode == "fixed_bps"
+
+ SPLITTING
+   TRAIN/VAL/TEST_FRACTION = 0.70 / 0.15 / 0.15
+   PURGE_SAMPLES = LOOKBACK + HORIZON_MAX = 70
+
+ SCALING
+   SCALER_KIND = "standard"        CLIP_SIGMA = 5.0     SCALE_TARGETS = True
+
+ REPRODUCIBILITY
+   RANDOM_SEED = 42                SAVE_3D_ARRAYS = False
+
+ IF YOU CHANGE LOOKBACK OR HORIZONS
+     The purge is defined in terms of them, and pipeline.py asserts the
+     resulting invariant, so an inconsistent combination fails loudly instead
+     of producing a quietly leaky dataset. The 3D tensor size scales as
+     n_samples x LOOKBACK x 49, so raising LOOKBACK much above 128 makes the
+     materialised tensor impractical - which is exactly why it is never
+     materialised.
+
+
+================================================================================
+ 22.  REPRODUCIBILITY AND ENVIRONMENT
+================================================================================
+
+ RECORDED IN dataset_metadata.json
+     Python 3.13.12   numpy 2.4.4   pandas 3.0.2   random seed 42
+     tensorflow_used_locally: false
+
+ PRODUCTS OF THE ACTUAL RUN
+     generated_utc        written into the metadata on every pipeline run
+     rows                 315,063 x 63
+     features             49
+     valid windows        312,165
+     split sizes          218,515 / 46,824 / 46,686  (+140 purged)
+
+ WHAT IS DETERMINISTIC
+     The entire pipeline. Data download, cleaning, features, targets, split,
+     scaler and thresholds contain no randomness. Re-running
+     `python src/pipeline.py` on the same raw CSV reproduces the dataset
+     bit-for-bit. Changing the raw data (a new Binance month) obviously changes
+     the dataset, which is why the metadata records the generation timestamp.
+
+ WHAT IS NOT DETERMINISTIC
+     Model training. Even with seeds fixed, GPU reduction order and
+     cuDNN kernel selection introduce run-to-run variation. Notebook 04 sets
+     python, numpy and TensorFlow seeds, but a difference of a fraction of a
+     point between two runs means nothing. Re-run with several seeds before
+     drawing a conclusion from a small gap.
+
+ PORTABILITY NOTES
+     * Timestamps are stored as int64 epoch MILLISECONDS precisely so that the
+       .npy files contain no timezone objects and no pickle. Older numpy
+       versions refuse to load object arrays with allow_pickle=False; storing
+       integers sidesteps that entirely.
+     * pandas 3.0 changed several behaviours this code had to accommodate:
+       `pct_change`'s fill_method removal (returns are computed explicitly),
+       microsecond-resolution tz-aware datetimes (all epoch conversions cast
+       through datetime64[ms] rather than dividing an int64 tick count), and
+       the removal of pd.io.common.file_exists.
+     * data/final/btcusdt_15m_dataset.csv is rounded to 8 decimals. The .npy
+       files are not rounded and are the authoritative values.
+
+
+================================================================================
+ 23.  KNOWN LIMITATIONS AND HONEST CAVEATS
+================================================================================
+
+ DATA
+   * One asset, one interval, one venue: BTCUSDT 15m on Binance spot. Nothing
+     here demonstrates anything about other assets, timeframes or exchanges.
+   * 643 missing candles (0.2019%). They are reported and segmented around, not
+     filled. A model trained here has never seen what happened during those
+     windows.
+   * Train spans 2017-2024 and test spans 2025-2026, which are different market
+     regimes - visibly so in the class balance table in section 12.
+
+ FEATURES
+   * 49 features from OHLCV and trade counts only. No order book, no funding
+     rates, no open interest, no on-chain data, no macro or news input. If the
+     signal lives in data this project does not ingest, no model here can find
+     it.
+   * Features are clipped at +/-5 sigma for numerical stability, which damps
+     exactly the extreme moves a trader would care about.
+   * Duplicate-but-not-identical features were kept (correlated volatility
+     windows, for example) where they carried genuinely different information;
+     only the mathematically redundant ones were removed. Highly correlated
+     inputs remain, which affects tree-model feature importance
+     interpretation.
+
+ MODELLING
+   * Stride-1 windows mean consecutive samples share 63 of 64 candles. The
+     sample count is not the number of independent observations, and any
+     confidence interval that treats it as such is wrong.
+   * No hyperparameter search is implemented. The defaults in notebook 04 are
+     reasonable starting points, not tuned values.
+   * No ensembling, no walk-forward retraining, no regime-aware modelling.
+   * Three-class accuracy on this test set is dominated by the NEUTRAL class
+     (~54%), so accuracy is a poor headline metric here - see section 12.
+
+ CLAIMS
+   * NO PROFITABILITY OR TRADING-EDGE CLAIM IS MADE ANYWHERE IN THIS PROJECT.
+     The models HAVE been trained (section 16) and every number reported is a
+     measurement on one historical test period - not a promise about the
+     future, and not evidence of an edge.
+   * The regression head is reported as FAILING: its MAE is worse than
+     predicting the mean at every horizon. It is documented rather than
+     quietly dropped.
+   * The backtest is deliberately unimplemented. Directional accuracy is not
+     profitability, and reporting an accuracy figure as though it were a
+     trading result would be misleading.
+   * The dashboard's live scorecard is measured, not asserted, but it is a
+     small sample. Do not read a hit rate off twenty calls.
+   * The confidence floor does NOT help. Swept on both splits (section 18),
+     raising it costs macro-F1 monotonically and buys essentially no accuracy.
+     It is exposed as a control you can test, not a knob that improves output.
+   * THE MAIN WEAKNESS IS THE NEUTRAL BIAS. Directional recall on test is
+     0.18-0.22: the model finds some directional moves and misses most of them.
+     Any future work should attack that directly - a class-weighted loss, or a
+     narrower neutral band - rather than chase the regression head, which has
+     no signal to recover in the first place.
+
+
+================================================================================
+ 24.  TROUBLESHOOTING (FAQ)
+================================================================================
+
+ Q: Do I need TensorFlow installed locally?
+ A: Not for the data pipeline, and requirements.txt deliberately omits it. The
+    local pipeline is numpy + pandas + scikit-learn. Audit check 17 enforces
+    that no module-level TensorFlow or PyTorch import exists in src/. Only
+    notebook 04 (Colab), notebook 05 (local training) and
+    inference.load_model() need it.
+
+ Q: `python pipeline.py` complains about missing raw data.
+ A: Run `python src/data_download.py` first, or `python src/pipeline.py
+ 
+    --refresh` to download and build in one go. You need network access to
+    data.binance.vision and api.binance.com.
+
+ Q: The audit prints a FAIL. What do I do?
+ A: The failure text names the artefact and the measured value. Do not proceed
+    to training with a failing audit - a leaky dataset produces results that
+    look better than reality, which is worse than no result. Re-run
+    `python src/pipeline.py` and audit again; most failures mean the pipeline
+    output is stale relative to the code.
+
+ Q: Shapes look wrong - X_train has more rows than y_train.
+ A: That is correct. X_*.npy is a contiguous block and starts_*.npy maps
+    samples into it; gap-excluded windows leave holes. See section 9. The
+    batcher handles it, and audit check 19 verifies the offsets are in range.
+
+ Q: `FileNotFoundError: Missing files in DATA_DIR: starts_train.npy`
+ A: You uploaded an older data/final/ folder, or only the .npy feature arrays.
+    Re-run the pipeline and upload the whole folder, starts_*.npy included.
+
+ Q: Can I train on my laptop anyway?
+ A: Yes - run notebooks/05_local_training.ipynb. It is the local counterpart to
+    notebook 04: same data, same models, same metrics, but no Colab guard, its
+    data comes from the repo's own data/final/, and it saves to models/.
+
+    It defaults to a chronologically tail-subsampled training split so a first
+    run finishes in a reasonable time, and it has SMOKE = True for a one-epoch
+    plumbing check. A subset run is for iteration - it is NOT a result to
+    report, and notebook 04 remains the reference configuration this
+    documentation describes.
+
+    Notebook 04 itself still refuses to run outside Colab unless you set
+    ALLOW_LOCAL_TRAINING = 1. That guard is deliberate: a silent local run
+    would produce numbers nobody intended to report, under a configuration
+    this documentation does not describe.
+
+ Q: Can I change LOOKBACK or the horizons?
+ A: Yes - edit src/config.py. The purge is derived from them automatically, and
+    pipeline.py asserts the resulting invariant, so an inconsistent combination
+    fails loudly rather than producing a quietly leaky dataset. Then re-run the
+    pipeline and the audit.
+
+ Q: Why is btcusdt_15m_dataset.csv 207 MB?
+ A: 315,063 rows x 61 float columns stored at 8 decimals. It is for inspection.
+    Training reads the .npy files instead: the three X blocks are 61.8 MB and
+    the whole upload set is ~76 MB, and they preserve exact values and dtypes.
+
+ Q: My model gets ~54% directional accuracy. Is that good?
+ A: Almost certainly not - that is close to the majority-class baseline on this
+    test set, where NEUTRAL alone is ~54%. Compare macro-F1 and the per-class
+    recalls against the baselines notebook 04 prints. Section 16 has the full
+    checklist.
+
+ Q: The model predicts NEUTRAL most of the time.
+ A: Expected, and consistent with the class priors. Raising the UP/DOWN weight
+    in the loss will trade NEUTRAL accuracy for directional recall - which may
+    be the right trade for a trading application and the wrong one for an
+    accuracy metric. Make that choice explicitly, and only on validation.
+
+ Q: Where does a trained model go for local inference?
+ A: models/, as a .keras file, e.g. models/gru_multitask.keras. That is the
+    default path for src/inference.py. Training in Colab saves to the Drive
+    folder; copy the file down.
+
+ Q: Can I use this to trade?
+ A: No. There is no execution layer, no risk management, no position sizing and
+    no backtest - and none is claimed. This is a research pipeline. Treat any
+    output from it as a measurement on historical data, not as advice.
+
+================================================================================
+ END OF GUIDE
+================================================================================

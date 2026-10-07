@@ -1,0 +1,1157 @@
+<title>Reading the BTC Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+/* ---------------------------------------------------------------------------
+   Tokens. Two families, deliberately separate:
+
+   -- page chrome, which follows the viewer's theme, and
+   -- instrument colours, which NEVER change, because they describe a different
+      screen. The dashboard's series colours are facts about the dashboard, so a
+      swatch that shifted with the reader's theme would stop being a key.
+--------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  --ground:   #f6f7f9;
+  --surface:  #ffffff;
+  --sunken:   #eceef2;
+  --ink:      #14181f;
+  --ink-2:    #414a5a;
+  --muted:    #6b7486;
+  --rule:     #dde1e8;
+  --rule-2:   #eef0f4;
+  --accent:   #5b3fd6;
+  --accent-s: #efeaff;
+
+  /* The dashboard's own tokens. Fixed in both themes. */
+  --up:      #26a69a;
+  --down:    #ef5350;
+  --neutral: #d9a441;
+  --active:  #f0a13a;
+  --quiet:   #5b7fb5;
+  --model:   #7c5cff;
+  --naive:   #6b7688;
+
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --gut: 16px;
+  --max: 1080px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground:   #0f131c;
+    --surface:  #161b26;
+    --sunken:   #1b2130;
+    --ink:      #e5e9f1;
+    --ink-2:    #b6bece;
+    --muted:    #868fa3;
+    --rule:     #262d3d;
+    --rule-2:   #1e2534;
+    --accent:   #a08cff;
+    --accent-s: #241f3d;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground:   #0f131c;
+  --surface:  #161b26;
+  --sunken:   #1b2130;
+  --ink:      #e5e9f1;
+  --ink-2:    #b6bece;
+  --muted:    #868fa3;
+  --rule:     #262d3d;
+  --rule-2:   #1e2534;
+  --accent:   #a08cff;
+  --accent-s: #241f3d;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding-inline: var(--gut);
+  padding-block: 40px 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* --- masthead ------------------------------------------------------------ */
+.mast { display: flex; flex-direction: column; gap: 14px; }
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+h1 {
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -.022em;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.standfirst {
+  font-size: 16px;
+  color: var(--ink-2);
+  max-width: 66ch;
+  margin: 0;
+}
+
+.mast-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  padding-top: 4px;
+  border-top: 1px solid var(--rule);
+  margin-top: 6px;
+  padding-block-start: 14px;
+}
+.mast-meta span { white-space: nowrap; }
+
+/* --- sections ------------------------------------------------------------ */
+section { display: flex; flex-direction: column; gap: 14px; }
+
+.sec-head { display: flex; flex-direction: column; gap: 5px; }
+
+h2 {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -.014em;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  text-wrap: balance;
+}
+h2 .num {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: .06em;
+}
+
+.lede { color: var(--ink-2); max-width: 68ch; margin: 0; font-size: 14.5px; }
+
+h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -.005em;
+}
+
+p { margin: 0; max-width: 68ch; }
+p + p { margin-top: 2px; }
+
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+
+code, .m {
+  font-family: var(--mono);
+  font-size: .88em;
+  background: var(--sunken);
+  padding: .12em .38em;
+  border-radius: 4px;
+  color: var(--ink-2);
+}
+
+/* --- generic table ------------------------------------------------------- */
+.scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 520px; }
+th, td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--rule-2);
+  vertical-align: top;
+  font-size: 14px;
+}
+thead th {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--sunken);
+  border-bottom: 1px solid var(--rule);
+  position: sticky;
+  top: 0;
+}
+tbody tr:last-child td { border-bottom: 0; }
+td.val { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
+td.key { font-weight: 500; white-space: nowrap; }
+td.dim { color: var(--muted); }
+
+/* --- swatches ------------------------------------------------------------ */
+.sw {
+  display: inline-block;
+  width: 26px;
+  height: 0;
+  border-top-width: 2.5px;
+  border-top-color: var(--ink-2);
+  vertical-align: middle;
+  margin-right: 8px;
+}
+.sw.solid  { border-top-style: solid; }
+.sw.dashed { border-top-style: dashed; }
+.sw.dotted { border-top-style: dotted; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  white-space: nowrap;
+}
+.chip.up      { color: var(--up);      border-color: color-mix(in srgb, var(--up) 40%, transparent); }
+.chip.down    { color: var(--down);    border-color: color-mix(in srgb, var(--down) 40%, transparent); }
+.chip.neutral { color: var(--neutral); border-color: color-mix(in srgb, var(--neutral) 40%, transparent); }
+.chip.active  { color: var(--active);  border-color: color-mix(in srgb, var(--active) 40%, transparent); }
+.chip.quiet   { color: var(--quiet);   border-color: color-mix(in srgb, var(--quiet) 40%, transparent); }
+
+/* --- callout ------------------------------------------------------------- */
+.callout {
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  background: var(--surface);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.callout h3 { color: var(--accent); font-family: var(--mono); font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; }
+.callout p { font-size: 14px; color: var(--ink-2); }
+.callout strong { color: var(--ink); font-weight: 600; }
+
+/* --- figure -------------------------------------------------------------- */
+figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.fig-box {
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: #131722;              /* the chart pane's own colour, both themes */
+  padding: 10px 6px 4px;
+  overflow-x: auto;
+}
+figcaption { font-size: 13px; color: var(--muted); max-width: 68ch; }
+.fig-box svg { display: block; width: 100%; min-width: 560px; height: auto; }
+
+/* --- the marker key ------------------------------------------------------ */
+.key {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.key-item {
+  background: var(--surface);
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.key-top { display: flex; align-items: center; gap: 9px; }
+.key-glyph {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #0d1017;
+  flex: none;
+}
+.key-glyph.up      { background: var(--up); }
+.key-glyph.down    { background: var(--down); }
+.key-glyph.neutral { background: var(--neutral); }
+.key-where { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .04em; }
+.key-what { font-size: 13.5px; color: var(--ink-2); }
+
+/* --- stat tile row ------------------------------------------------------- */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.tile {
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.tile .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tile .v { font-size: 22px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; }
+.tile .s { font-size: 12.5px; color: var(--muted); }
+.tile .v.up      { color: var(--up); }
+.tile .v.down    { color: var(--down); }
+.tile .v.neutral { color: var(--neutral); }
+.tile .v.active  { color: var(--active); }
+.tile .v.quiet   { color: var(--quiet); }
+
+/* --- bar specimen -------------------------------------------------------- */
+.bars { display: flex; flex-direction: column; gap: 7px; }
+.bar-row { display: grid; grid-template-columns: 44px 1fr 150px; align-items: center; gap: 10px; font-family: var(--mono); font-size: 11.5px; }
+.bar-track { display: flex; height: 16px; border-radius: 3px; overflow: hidden; background: var(--sunken); }
+.bar-seg { display: grid; place-items: center; color: #0d1017; font-size: 9.5px; font-weight: 600; }
+.bar-val { color: var(--muted); white-space: nowrap; }
+
+@media (max-width: 620px) {
+  .bar-row { grid-template-columns: 40px 1fr; }
+  .bar-val { grid-column: 1 / -1; padding-left: 50px; }
+}
+
+hr.rule { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="eyebrow">btc-trend-prediction · web dashboard</div>
+    <h1>Every number on the dashboard</h1>
+    <p class="standfirst">
+      A field guide to the React viewer: the chips across the top, the five stat
+      cards, each chart, and the dots drawn on the price series. Read a value
+      here and you can say what it means and what it does not.
+    </p>
+    <div class="mast-meta">
+      <span>BTCUSDT</span><span>·</span>
+      <span>15m candles</span><span>·</span>
+      <span>3-seed GRU ensemble</span><span>·</span>
+      <span>218,515 train / 46,686 test</span>
+    </div>
+  </header>
+
+  <!-- ================================================== 1. the two heads -->
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">01</span> The two heads, and the six horizons</h2>
+      <p class="lede">
+        Almost every value on the page is one of two questions asked at one of
+        six distances. Learn these and the rest is arithmetic.
+      </p>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Head</th><th>Question</th><th>Answers</th><th>Baseline to beat</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="key">direction <span class="dim">(<code>return_head</code>)</span></td>
+            <td>Which way does the close move?</td>
+            <td><span class="chip down">DOWN</span> <span class="chip neutral">NEUTRAL</span> <span class="chip up">UP</span></td>
+            <td class="val">~0.52 <span class="dim">majority class</span></td>
+          </tr>
+          <tr>
+            <td class="key">activity <span class="dim">(<code>regime_head</code>)</span></td>
+            <td>Will it move more than this market's own recent average?</td>
+            <td><span class="chip quiet">QUIET</span> <span class="chip active">ACTIVE</span></td>
+            <td class="val">0.50 <span class="dim">balanced by design</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      The six horizons are 15m, 30m, 45m, 60m, 75m and 90m — which is 1, 2, 3,
+      4, 5 and 6 candles ahead. The direction head answers all six. The activity
+      head answers four (15m, 30m, 60m, 90m), so a row reading <code>n/a</code>
+      on the activity side is a horizon the model was never trained to answer,
+      not a missing value.
+    </p>
+
+    <div class="callout">
+      <h3>Why the two baselines differ</h3>
+      <p>
+        The direction classes are cut by fixed return thresholds taken from the
+        training split, and those thresholds leave roughly <strong>40% of
+        candles NEUTRAL</strong> by construction. So always answering NEUTRAL
+        already scores about <strong>0.52</strong> — a direction accuracy of
+        0.55 is a real but small edge, not a 55-versus-33 win.
+      </p>
+      <p>
+        The activity threshold is the frozen <em>train median</em> of a ratio, so
+        the two classes come out <strong>50/50 by construction</strong> and
+        <strong>0.50 is the honest number to beat</strong>. This is why the
+        activity head is the one the dashboard leads with.
+      </p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ================================================== 2. the top bar -->
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">02</span> The top bar</h2>
+      <p class="lede">Seven chips, left to right. Everything here describes the current state of the feed, not a prediction.</p>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Chip</th><th>Reads</th><th>Means</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="key">symbol · interval</td>
+            <td class="val">BTCUSDT 15m</td>
+            <td>The pair and candle size. Every "candle" on this page is 15 minutes, so <code>+1 candle</code> = +15 minutes.</td>
+          </tr>
+          <tr>
+            <td class="key">the big price</td>
+            <td class="val">83,340.36</td>
+            <td>The <strong>anchor close</strong> — the close of the most recent <em>closed</em> candle. Every projection on the page is measured from this number.</td>
+          </tr>
+          <tr>
+            <td class="key">change line</td>
+            <td class="val">+0.42% on the last candle</td>
+            <td>The anchor close against the close one candle earlier. Green above zero, red below. This is history, not a forecast.</td>
+          </tr>
+          <tr>
+            <td class="key">connection</td>
+            <td class="val">● live (pushed)</td>
+            <td>
+              <span class="chip up">● live (pushed)</span> — the SSE stream is connected and the server pushes a frame whenever the payload changes.<br>
+              <span class="chip neutral">● live (polling)</span> — the stream went quiet for 25 seconds, so the page fell back to <code>GET /api/snapshot</code> every 5 seconds.<br>
+              <span class="chip down">●</span> — the last refresh failed; the panels still show the last good reading.
+            </td>
+          </tr>
+          <tr>
+            <td class="key">candle time</td>
+            <td class="val">candle 16:15:00 UTC</td>
+            <td>The <strong>open</strong> time of the anchor candle, in UTC. Times on the page are UTC even though the machine runs UTC+5:30.</td>
+          </tr>
+          <tr>
+            <td class="key">countdown</td>
+            <td class="val">next candle in 07:12</td>
+            <td>Time until the next 15-minute boundary. When it reaches zero a new candle closes and the next refresh issues a fresh set of calls.</td>
+          </tr>
+          <tr>
+            <td class="key">model</td>
+            <td class="val">inference_bundle.json</td>
+            <td>Which artifact answered. <code>inference_bundle.json</code> is the shipped 3-seed ensemble; a single <code>.keras</code> name means a single model is serving.</td>
+          </tr>
+          <tr>
+            <td class="key">updated</td>
+            <td class="val">updated 16:22:41</td>
+            <td>When <em>the browser</em> last received a frame. If this freezes while the countdown keeps moving, the stream has stalled.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ================================================== 3. stat cards -->
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">03</span> The five stat cards</h2>
+      <p class="lede">The headline row. Each card carries a value, a colour, and a smaller line underneath that says how much to trust it.</p>
+    </div>
+
+    <div class="tiles">
+      <div class="tile">
+        <div class="k">activity call · 15m</div>
+        <div class="v active">ACTIVE</div>
+        <div class="s">70.9% confident</div>
+      </div>
+      <div class="tile">
+        <div class="k">direction call · 15m</div>
+        <div class="v up">UP</div>
+        <div class="s">38.7% confident</div>
+      </div>
+      <div class="tile">
+        <div class="k">activity call · 90m</div>
+        <div class="v quiet">QUIET</div>
+        <div class="s">87.1% confident</div>
+      </div>
+      <div class="tile">
+        <div class="k">live activity hit rate</div>
+        <div class="v">63.2%</div>
+        <div class="s">12/19 resolved calls</div>
+      </div>
+      <div class="tile">
+        <div class="k">tracked candles</div>
+        <div class="v">192</div>
+        <div class="s">input [1, 192, 12]</div>
+      </div>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Card</th><th>Value</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="key">activity call · 15m</td>
+            <td class="val"><span class="chip active">ACTIVE</span> / <span class="chip quiet">QUIET</span></td>
+            <td>The nearest activity prediction: whether the next candle moves more than the market's own trailing average. This is the model's strongest output — <strong>roughly 60–68% against a 50% baseline</strong>. The sub-line gives the model's own probability, not its measured accuracy.</td>
+          </tr>
+          <tr>
+            <td class="key">direction call · 15m</td>
+            <td class="val"><span class="chip up">UP</span> / <span class="chip neutral">NEUTRAL</span> / <span class="chip down">DOWN</span></td>
+            <td>The nearest direction prediction. The sub-line says outright that this is <strong>close to a coin flip</strong> — read the activity row instead. Confidence here is the softmax probability of the winning class.</td>
+          </tr>
+          <tr>
+            <td class="key">activity call · 90m</td>
+            <td class="val"><span class="chip active">ACTIVE</span> / <span class="chip quiet">QUIET</span></td>
+            <td>The same question at the longest activity horizon — six candles, 90 minutes out. Confidence typically <em>rises</em> with horizon, which is normal: a 90-minute move is easier to call than a 15-minute one.</td>
+          </tr>
+          <tr>
+            <td class="key">live activity hit rate</td>
+            <td class="val">63.2%</td>
+            <td>Hits divided by resolved activity calls, counted <strong>only over calls made live, before the outcome existed</strong>. The sub-line shows the raw fraction. Against a 50% baseline this is the one live number worth watching — but a running total in the tens is still a thin sample.</td>
+          </tr>
+          <tr>
+            <td class="key">tracked candles</td>
+            <td class="val">192</td>
+            <td>How many past candles the model actually read to make this prediction. The sub-line echoes the tensor shape the model was fed: <code>[batch, candles, features]</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <h3>Confidence is not accuracy</h3>
+      <p>
+        Every <strong>confidence</strong> figure on this page is the model's own
+        output probability for the class it picked. It is not a hit rate and it
+        is not calibrated. A card reading <em>70.9% confident</em> does not mean
+        it is right 70.9% of the time — for that, look at the scorecards in
+        section 06, which count what actually happened.
+      </p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ================================================== 4. price chart -->
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">04</span> The price chart</h2>
+      <p class="lede">
+        Five things drawn on one time axis. Each is a different kind of claim,
+        and the line style tells you which.
+      </p>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Layer</th><th>Looks like</th><th>What it is</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="key">actual price</td>
+            <td class="val"><span class="sw solid" style="border-top-color:var(--up)"></span>green / red candles</td>
+            <td>240 real BTCUSDT 15m candles. Green when the close is at or above the open, red otherwise.</td>
+          </tr>
+          <tr>
+            <td class="key">model projection</td>
+            <td class="val"><span class="sw dashed" style="border-top-color:var(--model)"></span>thick violet, dashed</td>
+            <td>The regression head's projected close at each of the six horizons, drawn from the anchor forward. <strong>This is the model's raw output, and it is measurably worse than predicting no change at every horizon.</strong> It is drawn because it is what the model says, not because it is tradeable.</td>
+          </tr>
+          <tr>
+            <td class="key">no-change baseline</td>
+            <td class="val"><span class="sw dotted" style="border-top-color:var(--naive)"></span>grey, dotted</td>
+            <td>The same path with zero return — a flat line at the anchor close. This is the bar the projection has to clear, and on held-out test data it does not. Seeing the two lines nearly coincide is the most informative thing on the chart.</td>
+          </tr>
+          <tr>
+            <td class="key">realised-outcome range</td>
+            <td class="val"><span class="sw dotted" style="border-top-color:#7c5cff"></span>pale violet, dotted pair</td>
+            <td>
+              The <strong>25th and 75th percentiles of realised training-split returns</strong>, conditional on the class the model predicts, drawn from the anchor forward. It answers: how big is the move the model just committed to, next to the noise it is sitting in?<br>
+              <span class="dim">It is a description of the training distribution, not a confidence interval for this path. The payload also carries the 10th, 50th and 90th percentiles; only the middle 50% is drawn.</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="key">recorded projections</td>
+            <td class="val"><span class="sw dotted" style="border-top-color:#9d8aff"></span>faint violet, dotted</td>
+            <td>
+              Every projection the dashboard has ever recorded, one point per candle, read back from <code>models/predictions.db</code>. The bright curve above is one window; this is all of them, so the pair shows whether the projections have been tracking price or only looked plausible once.<br>
+              <span class="dim">It <strong>breaks</strong> wherever the dashboard was not running. A line drawn straight through an outage would be a forecast nobody made.</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Underneath the chart</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Line</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="key">Projection points</td>
+            <td>One entry per horizon: <code>60m 83,294.18 (+0.021%)</code>. The label, the projected close at that horizon, and the expected return in percent. This is the same curve, as numbers.</td>
+          </tr>
+          <tr>
+            <td class="key">Recorded projections: N points…</td>
+            <td>How much history is behind the faint line, how many windows it came from, and how many of those points have a realised close to compare against. Hovering shows the server's own note about the store.</td>
+          </tr>
+          <tr>
+            <td class="key">the amber caveat line</td>
+            <td>The regression head's own note, served from the backend. It exists so the chart cannot be read without it.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ================================================== 5. volume -->
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">05</span> The volume pane</h2>
+      <p class="lede">A histogram, aligned to the price chart above it so the two can be read down one vertical line.</p>
+    </div>
+    <p>
+      One bar per candle, height = that candle's traded volume, colour = the
+      candle's own direction (green if the close was at or above the open, red
+      otherwise). Same 240-candle window and the same time axis as the price
+      chart, which is the only reason it is a separate pane rather than another
+      line: a second price scale would misalign the bars.
+    </p>
+    <p class="dim">
+      It carries no model output. It is there to say whether the move the model
+      just committed to happened on real participation or on nothing.
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ================================================== 6. probability bars -->
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">06</span> The two probability panels</h2>
+      <p class="lede">Stacked bars, one row per horizon. The widest segment is the class the model picked.</p>
+    </div>
+
+    <h3>Direction probabilities — DOWN / NEUTRAL / UP</h3>
+    <div class="bars" style="margin-bottom:6px">
+      <div class="bar-row">
+        <span>15m</span>
+        <div class="bar-track">
+          <div class="bar-seg" style="width:29%;background:var(--down)">29%</div>
+          <div class="bar-seg" style="width:32%;background:var(--neutral)">32%</div>
+          <div class="bar-seg" style="width:39%;background:var(--up)">39%</div>
+        </div>
+        <span class="bar-val">UP 39%</span>
+      </div>
+      <div class="bar-row">
+        <span>90m</span>
+        <div class="bar-track">
+          <div class="bar-seg" style="width:31%;background:var(--down)">31%</div>
+          <div class="bar-seg" style="width:38%;background:var(--neutral)">38%</div>
+          <div class="bar-seg" style="width:31%;background:var(--up)">31%</div>
+        </div>
+        <span class="bar-val">NEUTRAL 38%</span>
+      </div>
+    </div>
+    <p>
+      The three segments are the softmax over DOWN, NEUTRAL and UP, and they sum
+      to 100% on every row. Expect them to sit near one third each: when the
+      widest segment is barely above the others, the model is telling you it
+      has no view, and the right reading is "no call".
+    </p>
+    <p class="dim">
+      The right-hand label repeats the winning class and its percentage — the
+      same number the top card shows for 15m. Bars narrower than 12% are drawn
+      without their number so the text does not overflow its segment.
+    </p>
+
+    <h3 style="margin-top:10px">Activity probabilities — QUIET / ACTIVE</h3>
+    <div class="bars" style="margin-bottom:6px">
+      <div class="bar-row">
+        <span>15m</span>
+        <div class="bar-track">
+          <div class="bar-seg" style="width:29%;background:var(--quiet)">29%</div>
+          <div class="bar-seg" style="width:71%;background:var(--active)">71%</div>
+        </div>
+        <span class="bar-val">ACTIVE 71% · active if &gt;0.171%</span>
+      </div>
+      <div class="bar-row">
+        <span>90m</span>
+        <div class="bar-track">
+          <div class="bar-seg" style="width:87%;background:var(--quiet)">87%</div>
+          <div class="bar-seg" style="width:13%;background:var(--active)"></div>
+        </div>
+        <span class="bar-val">QUIET 87% · active if &gt;0.664%</span>
+      </div>
+    </div>
+    <p>
+      Only four rows appear (15m, 30m, 60m, 90m) because those are the horizons
+      the activity head was trained on. The trailing <code>active if &gt;x%</code>
+      is the <strong>decision threshold made concrete</strong>: it is the frozen
+      train-median ratio multiplied by this market's current trailing average
+      absolute move. A candle whose move exceeds that number is labelled ACTIVE.
+    </p>
+    <p class="dim">
+      The threshold moves between refreshes, because the trailing average it is
+      scaled by moves. The <em>ratio</em> is frozen; the percentage is not.
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ================================================== 7. scorecards -->
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">07</span> The two scorecards</h2>
+      <p class="lede">The model graded on its own live calls — the only figures on the page measured on outcomes that did not exist when the call was made.</p>
+    </div>
+    <p>
+      Each panel is a <strong>cumulative</strong> hit rate: point <em>n</em> on
+      the x-axis is the accuracy over the first <em>n</em> resolved calls, oldest
+      to newest. Early points swing violently and the line only settles after a
+      few dozen resolutions — which is exactly why it is drawn as a running line
+      instead of printed as one headline number.
+    </p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Panel</th><th>Baseline drawn</th><th>Read it as</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="key">live activity scorecard</td>
+            <td class="val">dashed line at 50%</td>
+            <td>The classes are balanced by construction, so 50% is the number to beat. A line above the dashed rule is a real edge; below it, the model is worse than a coin.</td>
+          </tr>
+          <tr>
+            <td class="key">live direction scorecard</td>
+            <td class="val">no baseline drawn</td>
+            <td>Direction is 3-class and dominated by NEUTRAL, so its baseline is the majority-class rate (~0.52), not 0.50. No rule is drawn because a 50% line here would flatter it — <strong>a raw direction accuracy is not comparable with the activity line above it.</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="dim">
+      The two heads are never pooled into one blended "accuracy", because their
+      baselines differ and a single number would describe neither. Empty panels
+      mean nothing has resolved yet — calls resolve only when their target
+      candle prints, so this fills in as the server keeps running.
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ================================================== 8. distribution -->
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">08</span> Realised returns vs what the model expects</h2>
+      <p class="lede">A histogram of what actually happened in training, with today's prediction standing on it.</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Element</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="key">the bars</td>
+            <td>How often each range of h-candle returns occurred across <strong>all training candles</strong> for the selected horizon. Height is a count of candles.</td>
+          </tr>
+          <tr>
+            <td class="key">bar colour</td>
+            <td>
+              <span class="chip down">red</span> returns below the lower threshold → would be labelled DOWN<br>
+              <span class="chip neutral">amber</span> inside the band → NEUTRAL<br>
+              <span class="chip up">green</span> above the upper threshold → UP
+            </td>
+          </tr>
+          <tr>
+            <td class="key">shaded band</td>
+            <td>The <strong>frozen NEUTRAL region</strong> for this horizon, taken from the training split — the exact thresholds the labels were built with, not a band invented for the chart. The caption computes what share of training candles fall inside it, which is where the ~40% figure comes from.</td>
+          </tr>
+          <tr>
+            <td class="key">white vertical line</td>
+            <td><strong>Today's prediction</strong> for this horizon, labelled with its value. This is the one live thing on the chart.</td>
+          </tr>
+          <tr>
+            <td class="key">dashed grey line at 0</td>
+            <td>Zero return. If the white line sits close to it, the model expects nothing much — and the direction call that came with it is correspondingly weak.</td>
+          </tr>
+          <tr>
+            <td class="key">horizon buttons</td>
+            <td>Switch the whole chart between 15m and 90m. Everything redraws except the prediction, which is per-horizon.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="dim">
+      The question this panel answers that a bare accuracy number cannot: how
+      far outside the middle is the model actually willing to commit, and is
+      that move large next to the noise it is sitting in? A tall central bar and
+      a prediction line near zero means the model is correctly declining to
+      guess.
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ================================================== 9. metrics -->
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">09</span> Held-out performance</h2>
+      <p class="lede">Numbers measured on data the model never trained on — and the baselines they have to beat.</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Row</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="key">activity accuracy (all horizons)</td>
+            <td>Share of held-out candles where QUIET/ACTIVE was called correctly, pooled across the four horizons.</td>
+          </tr>
+          <tr>
+            <td class="key">baseline (activity)</td>
+            <td>~0.50, because the classes are balanced by construction.</td>
+          </tr>
+          <tr>
+            <td class="key">lift</td>
+            <td>Accuracy minus baseline, in <strong>percentage points</strong>. Green if positive. The activity lift is the large one — several points over 50%.</td>
+          </tr>
+          <tr>
+            <td class="key">activity macro-F1</td>
+            <td>F1 averaged over the two classes without weighting by frequency. Compared with plain accuracy it shows whether the model is winning on both classes or just the common one.</td>
+          </tr>
+          <tr>
+            <td class="key">direction accuracy + baseline</td>
+            <td>The same for the 3-class direction head, against a majority-class baseline of roughly 0.52. <strong>The direction lift is a couple of percentage points at best</strong> — that difference is the honest summary of what this model can and cannot do.</td>
+          </tr>
+          <tr>
+            <td class="key">the per-horizon table</td>
+            <td>The activity numbers broken out by horizon, each with its own baseline and lift, so a strong 90m result cannot hide a weak 15m one.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <h3>Which split you are reading</h3>
+      <p>
+        A <strong>green</strong> caption means the <strong>test</strong> split —
+        the 15% of history no threshold, scaler or early-stopping decision ever
+        touched. It is the most honest number on the page.
+      </p>
+      <p>
+        An <strong>amber</strong> caption means the <strong>validation</strong>
+        split, which early stopping and the class weights were chosen against.
+        Treat it as optimistic and do not quote it as a result.
+      </p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ================================================== 10. call log -->
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">10</span> The call log</h2>
+      <p class="lede">Every call the server issued, newest first, hits and misses side by side with the same typography.</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="key">made</td><td>The UTC time the call was issued — always at a candle boundary.</td></tr>
+          <tr><td class="key">head</td><td><code>direction</code> or <code>activity</code>. One row is one call, never a blend of the two.</td></tr>
+          <tr><td class="key">hz</td><td>The horizon: how far ahead the call reaches.</td></tr>
+          <tr><td class="key">called</td><td>The class the model picked, coloured green if it hit, red if it missed, grey if still pending.</td></tr>
+          <tr><td class="key">conf</td><td>The model's probability for that class at the moment it called.</td></tr>
+          <tr><td class="key">price</td><td>The anchor close — the price the call was measured from.</td></tr>
+          <tr><td class="key">target</td><td>The <strong>time of the candle that will settle this call</strong>. Not the time it was made.</td></tr>
+          <tr><td class="key">outcome</td><td>
+            <span class="dim">pending</span> — that candle has not printed yet.<br>
+            For <code>direction</code>: the realised class and the realised return, e.g. <code>UP +0.142%</code>.<br>
+            For <code>activity</code>: the realised class and the move <em>relative to the threshold</em>, e.g. <code>ACTIVE (1.31% vs ref)</code> — because "did it move enough" is a ratio, not a raw return.
+          </td></tr>
+          <tr><td class="key">hit / miss</td><td>The verdict, in the same colour code as the dots on the chart.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="dim">
+      The footnote gives total calls recorded and total resolved, plus the
+      activity baseline. Calls are logged to one file per model, so two models'
+      calls are never blended into a single hit rate.
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ================================================== 11. THE DOTS -->
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">11</span> The dots on the price chart</h2>
+      <p class="lede">
+        Each dot is a call the model already made, drawn at the candle where
+        that call <em>resolved</em>. It is the model's own report card, plotted
+        on the price it was judging.
+      </p>
+    </div>
+
+    <figure>
+      <div class="fig-box">
+        <svg viewBox="0 0 640 232" role="img" aria-label="A candlestick chart with the seven marker states labelled: single direction hit and miss, single activity hit and miss, and three multi-call tallies.">
+          <!-- gridlines -->
+          <g stroke="#262d3d" stroke-width="1">
+            <line x1="24" y1="60"  x2="616" y2="60"/>
+            <line x1="24" y1="110" x2="616" y2="110"/>
+            <line x1="24" y1="160" x2="616" y2="160"/>
+          </g>
+
+          <!-- candles: body rect + wick line, green up / red down -->
+          <g stroke-width="1.4">
+            <!-- 1 -->
+            <line x1="60" y1="180" x2="60" y2="142" stroke="#26a69a"/>
+            <rect x="51" y="152" width="18" height="18" fill="#26a69a"/>
+            <!-- 2 -->
+            <line x1="130" y1="162" x2="130" y2="120" stroke="#26a69a"/>
+            <rect x="121" y="130" width="18" height="22" fill="#26a69a"/>
+            <!-- 3 -->
+            <line x1="200" y1="120" x2="200" y2="156" stroke="#ef5350"/>
+            <rect x="191" y="130" width="18" height="16" fill="#ef5350"/>
+            <!-- 4 -->
+            <line x1="270" y1="156" x2="270" y2="112" stroke="#26a69a"/>
+            <rect x="261" y="122" width="18" height="24" fill="#26a69a"/>
+            <!-- 5 -->
+            <line x1="340" y1="112" x2="340" y2="148" stroke="#ef5350"/>
+            <rect x="331" y="122" width="18" height="16" fill="#ef5350"/>
+            <!-- 6 -->
+            <line x1="410" y1="148" x2="410" y2="102" stroke="#26a69a"/>
+            <rect x="401" y="112" width="18" height="26" fill="#26a69a"/>
+            <!-- 7 -->
+            <line x1="480" y1="102" x2="480" y2="138" stroke="#ef5350"/>
+            <rect x="471" y="112" width="18" height="16" fill="#ef5350"/>
+            <!-- 8 -->
+            <line x1="550" y1="138" x2="550" y2="94" stroke="#26a69a"/>
+            <rect x="541" y="104" width="18" height="24" fill="#26a69a"/>
+          </g>
+
+          <!-- markers: circle + text, exactly as setMarkers draws them -->
+          <g font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600">
+            <!-- c2: direction hit -> green, belowBar, ● -->
+            <circle cx="130" cy="180" r="5" fill="#26a69a"/>
+            <text x="140" y="184" fill="#26a69a">●</text>
+            <!-- c3: direction miss -> red, aboveBar, ● -->
+            <circle cx="200" cy="104" r="5" fill="#ef5350"/>
+            <text x="210" y="108" fill="#ef5350">●</text>
+            <!-- c4: activity hit -> green, belowBar, a -->
+            <circle cx="270" cy="174" r="5" fill="#26a69a"/>
+            <text x="280" y="178" fill="#26a69a">a</text>
+            <!-- c5: activity miss -> red, aboveBar, x -->
+            <circle cx="340" cy="96" r="5" fill="#ef5350"/>
+            <text x="350" y="100" fill="#ef5350">x</text>
+            <!-- c6: two calls, both hit -> green, belowBar, 2/2 -->
+            <circle cx="410" cy="166" r="5" fill="#26a69a"/>
+            <text x="420" y="170" fill="#26a69a">2/2</text>
+            <!-- c7: two calls, one hit -> amber, belowBar (tie), 1/2 -->
+            <circle cx="480" cy="156" r="5" fill="#d9a441"/>
+            <text x="490" y="160" fill="#d9a441">1/2</text>
+            <!-- c8: two calls, neither hit -> red, aboveBar, 0/2 -->
+            <circle cx="550" cy="78" r="5" fill="#ef5350"/>
+            <text x="560" y="82" fill="#ef5350">0/2</text>
+          </g>
+
+          <!-- axis -->
+          <line x1="24" y1="200" x2="616" y2="200" stroke="#333c52"/>
+          <g fill="#6b7688" font-family="IBM Plex Mono, monospace" font-size="10">
+            <text x="60"  y="218" text-anchor="middle">14:15</text>
+            <text x="200" y="218" text-anchor="middle">15:00</text>
+            <text x="340" y="218" text-anchor="middle">15:45</text>
+            <text x="480" y="218" text-anchor="middle">16:30</text>
+          </g>
+          <g fill="#4a5468" font-family="IBM Plex Sans, sans-serif" font-size="10" font-style="italic">
+            <text x="60" y="50">above the bar = the model got it wrong</text>
+            <text x="616" y="192" text-anchor="end">below the bar = it got it right, or tied</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>
+        All seven marker states, drawn in the dashboard's own colours. Each dot
+        sits on the candle that <em>settled</em> the call, which is up to six
+        candles to the right of the candle the call was made on.
+      </figcaption>
+    </figure>
+
+    <h3>Position: two states</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Position</th><th>Rule</th><th>Means</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="key">below the bar</td>
+            <td class="val">hits × 2 ≥ calls</td>
+            <td>At least half the calls on this candle were right. A <strong>tie goes below</strong> — 1 of 2 lands here.</td>
+          </tr>
+          <tr>
+            <td class="key">above the bar</td>
+            <td class="val">hits × 2 &lt; calls</td>
+            <td>A majority of the calls on this candle were wrong.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Colour: three states</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Colour</th><th>Rule</th><th>Means</th></tr></thead>
+        <tbody>
+          <tr><td class="key"><span class="chip up">green</span></td><td class="val">hits = calls</td><td>Every call that landed on this candle was right.</td></tr>
+          <tr><td class="key"><span class="chip neutral">amber</span></td><td class="val">0 &lt; hits &lt; calls</td><td>Mixed — the two heads disagreed at this candle, and one of them was wrong. This is the state worth stopping on.</td></tr>
+          <tr><td class="key"><span class="chip down">red</span></td><td class="val">hits = 0</td><td>Every call that landed on this candle was wrong.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Text: what is written in the dot</h3>
+    <div class="key">
+      <div class="key-item">
+        <div class="key-top"><span class="key-glyph up">●</span><span class="key-where">green · below · 1 direction call</span></div>
+        <div class="key-what">A single direction call, and it was right. The glyph stays a filled dot either way — <strong>the colour carries the verdict</strong>, not the letter.</div>
+      </div>
+      <div class="key-item">
+        <div class="key-top"><span class="key-glyph down">●</span><span class="key-where">red · above · 1 direction call</span></div>
+        <div class="key-what">A single direction call, and it was wrong. Same glyph, opposite meaning — read the colour and the side, not the character.</div>
+      </div>
+      <div class="key-item">
+        <div class="key-top"><span class="key-glyph up">a</span><span class="key-where">green · below · 1 activity call</span></div>
+        <div class="key-what"><strong>a</strong> for <em>activity</em>, hit. A lone activity call is the only marker whose text changes with the outcome at one call.</div>
+      </div>
+      <div class="key-item">
+        <div class="key-top"><span class="key-glyph down">x</span><span class="key-where">red · above · 1 activity call</span></div>
+        <div class="key-what"><strong>x</strong> for a miss. <code>a</code> and <code>x</code> never appear together — an activity call is one or the other.</div>
+      </div>
+      <div class="key-item">
+        <div class="key-top"><span class="key-glyph up">2/2</span><span class="key-where">green · below · 2 calls</span></div>
+        <div class="key-what">Two calls settled on this candle and <strong>both</strong> were right. The tally appears only when more than one call shares a candle.</div>
+      </div>
+      <div class="key-item">
+        <div class="key-top"><span class="key-glyph neutral">1/2</span><span class="key-where">amber · below · 2 calls</span></div>
+        <div class="key-what">Two calls, one right. The heads split. Sits <em>below</em> the bar because a tie counts as a pass.</div>
+      </div>
+      <div class="key-item">
+        <div class="key-top"><span class="key-glyph down">0/2</span><span class="key-where">red · above · 2 calls</span></div>
+        <div class="key-what">Two calls, neither right. The worst state a candle can show.</div>
+      </div>
+      <div class="key-item">
+        <div class="key-top"><span class="key-glyph" style="background:var(--sunken);color:var(--muted)">—</span><span class="key-where">no marker</span></div>
+        <div class="key-what">Either no call resolved on this candle, or the call is still pending. A call only draws once its target candle has actually printed.</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h3>Why one candle can carry two calls</h3>
+      <p>
+        Every new candle issues <strong>ten</strong> calls: six direction
+        horizons (targets +1 to +6 candles) and four activity horizons (targets
+        +1, +2, +4 and +6). Both heads answer 15m, 30m, 60m and 90m, so
+        <strong>four of those ten resolve on a candle another call already
+        claimed</strong>.
+      </p>
+      <p>
+        Those are merged into one dot with a tally rather than dropped. Keeping
+        only one of them would hide the interesting case — the two heads
+        disagreeing at the same candle — and that disagreement is what the
+        amber 1/2 is for.
+      </p>
+      <p>
+        A tick with <strong>no dot at all</strong> is normal. The newest calls
+        target candles one to six ahead of the last one in the payload, so they
+        cannot be placed on the axis until those candles print — which is also
+        why a freshly started dashboard shows an empty marker row.
+      </p>
+    </div>
+
+    <h3>Other dots on the page</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Where</th><th>What it is</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="key">the header chip</td>
+            <td>A <strong>connection</strong> light, unrelated to the chart. Green and pulsing = the SSE stream is live. Red = the last refresh failed. It never reflects a prediction.</td>
+          </tr>
+          <tr>
+            <td class="key">on the model projection line</td>
+            <td>A small <strong>hover dot</strong> that appears under the cursor as you move across the bright violet curve. Purely a crosshair affordance — the other four series are drawn without it so the chart does not flicker.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ================================================== 12. footer -->
+  <section>
+    <div class="sec-head">
+      <h2><span class="num">12</span> The footer</h2>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Item</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="key">generated</td><td>The UTC timestamp the server built this payload. Compare it with the header's <em>updated</em> to see the age of what you are reading.</td></tr>
+          <tr><td class="key">status</td><td>The engine's own state string — <code>LIVE</code> when the last refresh succeeded.</td></tr>
+          <tr><td class="key">band notice</td><td>Present only when the realised-outcome band is on the chart; hovering gives the server's full note about what it is.</td></tr>
+          <tr><td class="key">the amber paragraph</td><td>The standing disclaimer, served by the backend rather than hard-coded in the UI. It is the one block on the page that is not a measurement.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <p class="dim" style="font-size:13px">
+      Values shown as examples on this page use real field names and typical
+      magnitudes from the running dashboard; the live figures come from
+      <code>/api/snapshot</code>. Colours match the chart's own tokens, so a
+      swatch here can be matched against the screen directly.
+    </p>
+  </section>
+
+</div>
