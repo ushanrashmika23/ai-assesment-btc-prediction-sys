@@ -1,0 +1,24 @@
+{
+  "name": "btc-trend-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Live React dashboard for the BTCUSDT 15m trend model. Research viewer - not investment advice.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "node check.mjs",
+    "check:markers": "node markers-check.mjs"
+  },
+  "dependencies": {
+    "lightweight-charts": "^4.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.12.7"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.11"
+  }
+}
