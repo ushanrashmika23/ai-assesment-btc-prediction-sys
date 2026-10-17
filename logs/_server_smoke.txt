@@ -1,0 +1,27 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1790609260.999561    2036 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1790609268.598580    2036 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING:tensorflow:TensorFlow GPU support is not available on native Windows for TensorFlow >= 2.11. Even if CUDA/cuDNN are installed, GPU will not be used. Please use WSL2 or the TensorFlow-DirectML plugin.
+INFO:     Started server process [7396]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8011 (Press CTRL+C to quit)
+loading the model and taking the first reading (TensorFlow import takes ~10s) ...
+  [ok]   REST top-up  664 candles
+  model   : gru_s42_best.keras
+  candle  : 2026-09-28 15:15:00+00:00
+  log     : E:\_KDU\Academic\Semester 4\ai\GROUP AS\btc-trend-prediction\models\dashboard_log_gru_s42_best.json
+
+API on http://127.0.0.1:8011   docs at /docs
+INFO:     127.0.0.1:5284 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5298 - "GET /api/snapshot HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1593 - "GET /api/candles?limit=5 HTTP/1.1" 422 Unprocessable Content
+  [ok]   REST top-up  664 candles
+INFO:     127.0.0.1:1612 - "GET /api/candles?limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1616 - "GET /api/prediction HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1617 - "GET /api/track-record HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1618 - "GET /api/metrics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1619 - "GET /api/stream HTTP/1.1" 200 OK
+  [ok]   REST top-up  664 candles
+INFO:     127.0.0.1:7950 - "GET /api/snapshot HTTP/1.1" 200 OK

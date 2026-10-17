@@ -1,0 +1,246 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1790606612.325738   18428 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1790606615.777129   18428 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING:tensorflow:TensorFlow GPU support is not available on native Windows for TensorFlow >= 2.11. Even if CUDA/cuDNN are installed, GPU will not be used. Please use WSL2 or the TensorFlow-DirectML plugin.
+python 3.13.12   tensorflow 2.21.0   keras 3.14.0
+device: CPU only
+threads: 10 intra-op, 5 inter-op
+
+lookback 64   features 49   horizons ['15m', '30m', '45m', '60m', '75m', '90m']   HORIZON_MAX 6 candles
+purge clearance: 1 candle(s)
+using the full training split: 218,515 samples
+val 46,824   test 46,686
+regime head: ['15m', '30m', '60m', '90m'] (QUIET/ACTIVE) alongside 6 direction horizons
+batches: 214 fit | 46 val | 46 test
+direction class weights (strength 0.5), per horizon DOWN/NEUTRAL/UP:
+   15m  1.047  0.907  1.047
+   30m  1.047  0.907  1.047
+   45m  1.047  0.907  1.047
+   60m  1.047  0.907  1.047
+   75m  1.047  0.907  1.047
+   90m  1.047  0.907  1.047
+
+========================================================================
+TRAINING GRU  (gru_s42)  seed 42
+========================================================================
+Epoch 1/25
+214/214 - 95s - 442ms/step - direction_head_loss: 1.0982 - direction_head_sparse_categorical_accuracy: 0.4395 - loss: 3.0337 - regime_head_loss: 0.7098 - regime_head_sparse_categorical_accuracy: 0.5681 - return_head_loss: 1.2259 - return_head_mae: 0.7091 - val_direction_head_loss: 1.0301 - val_direction_head_sparse_categorical_accuracy: 0.4654 - val_loss: 2.0797 - val_regime_head_loss: 0.6166 - val_regime_head_sparse_categorical_accuracy: 0.6623 - val_return_head_loss: 0.4315 - val_return_head_mae: 0.4295 - val_direction_macro_f1: 0.4158 - val_direction_accuracy: 0.4654 - val_regime_accuracy: 0.6623 - val_regime_macro_f1: 0.6621 - val_selection_score: 0.5391 - learning_rate: 0.0010
+Epoch 2/25
+214/214 - 79s - 369ms/step - direction_head_loss: 1.0203 - direction_head_sparse_categorical_accuracy: 0.4720 - loss: 2.7036 - regime_head_loss: 0.6603 - regime_head_sparse_categorical_accuracy: 0.6015 - return_head_loss: 1.0228 - return_head_mae: 0.5877 - val_direction_head_loss: 1.0237 - val_direction_head_sparse_categorical_accuracy: 0.4655 - val_loss: 2.0625 - val_regime_head_loss: 0.6087 - val_regime_head_sparse_categorical_accuracy: 0.6666 - val_return_head_loss: 0.4287 - val_return_head_mae: 0.4270 - val_direction_macro_f1: 0.4234 - val_direction_accuracy: 0.4655 - val_regime_accuracy: 0.6666 - val_regime_macro_f1: 0.6663 - val_selection_score: 0.5450 - learning_rate: 0.0010
+Epoch 3/25
+214/214 - 87s - 408ms/step - direction_head_loss: 1.0075 - direction_head_sparse_categorical_accuracy: 0.4819 - loss: 2.6614 - regime_head_loss: 0.6522 - regime_head_sparse_categorical_accuracy: 0.6116 - return_head_loss: 1.0017 - return_head_mae: 0.5723 - val_direction_head_loss: 1.0255 - val_direction_head_sparse_categorical_accuracy: 0.4669 - val_loss: 2.0613 - val_regime_head_loss: 0.6056 - val_regime_head_sparse_categorical_accuracy: 0.6688 - val_return_head_loss: 0.4288 - val_return_head_mae: 0.4274 - val_direction_macro_f1: 0.4215 - val_direction_accuracy: 0.4669 - val_regime_accuracy: 0.6688 - val_regime_macro_f1: 0.6687 - val_selection_score: 0.5452 - learning_rate: 0.0010
+Epoch 4/25
+214/214 - 94s - 439ms/step - direction_head_loss: 1.0027 - direction_head_sparse_categorical_accuracy: 0.4863 - loss: 2.6458 - regime_head_loss: 0.6482 - regime_head_sparse_categorical_accuracy: 0.6164 - return_head_loss: 0.9945 - return_head_mae: 0.5695 - val_direction_head_loss: 1.0206 - val_direction_head_sparse_categorical_accuracy: 0.4736 - val_loss: 2.0546 - val_regime_head_loss: 0.6017 - val_regime_head_sparse_categorical_accuracy: 0.6713 - val_return_head_loss: 0.4308 - val_return_head_mae: 0.4298 - val_direction_macro_f1: 0.4208 - val_direction_accuracy: 0.4736 - val_regime_accuracy: 0.6713 - val_regime_macro_f1: 0.6710 - val_selection_score: 0.5460 - learning_rate: 0.0010
+Epoch 5/25
+214/214 - 84s - 391ms/step - direction_head_loss: 0.9993 - direction_head_sparse_categorical_accuracy: 0.4897 - loss: 2.6324 - regime_head_loss: 0.6455 - regime_head_sparse_categorical_accuracy: 0.6195 - return_head_loss: 0.9868 - return_head_mae: 0.5683 - val_direction_head_loss: 1.0196 - val_direction_head_sparse_categorical_accuracy: 0.4704 - val_loss: 2.0561 - val_regime_head_loss: 0.6011 - val_regime_head_sparse_categorical_accuracy: 0.6711 - val_return_head_loss: 0.4339 - val_return_head_mae: 0.4305 - val_direction_macro_f1: 0.4270 - val_direction_accuracy: 0.4704 - val_regime_accuracy: 0.6711 - val_regime_macro_f1: 0.6710 - val_selection_score: 0.5491 - learning_rate: 0.0010
+Epoch 6/25
+214/214 - 85s - 400ms/step - direction_head_loss: 0.9973 - direction_head_sparse_categorical_accuracy: 0.4928 - loss: 2.6183 - regime_head_loss: 0.6443 - regime_head_sparse_categorical_accuracy: 0.6212 - return_head_loss: 0.9770 - return_head_mae: 0.5657 - val_direction_head_loss: 1.0245 - val_direction_head_sparse_categorical_accuracy: 0.4623 - val_loss: 2.0683 - val_regime_head_loss: 0.6087 - val_regime_head_sparse_categorical_accuracy: 0.6615 - val_return_head_loss: 0.4337 - val_return_head_mae: 0.4295 - val_direction_macro_f1: 0.4308 - val_direction_accuracy: 0.4623 - val_regime_accuracy: 0.6615 - val_regime_macro_f1: 0.6577 - val_selection_score: 0.5461 - learning_rate: 0.0010
+Epoch 7/25
+
+Epoch 7: ReduceLROnPlateau reducing learning rate to 0.0005000000237487257.
+214/214 - 80s - 375ms/step - direction_head_loss: 0.9948 - direction_head_sparse_categorical_accuracy: 0.4950 - loss: 2.6026 - regime_head_loss: 0.6428 - regime_head_sparse_categorical_accuracy: 0.6228 - return_head_loss: 0.9657 - return_head_mae: 0.5640 - val_direction_head_loss: 1.0214 - val_direction_head_sparse_categorical_accuracy: 0.4666 - val_loss: 2.0648 - val_regime_head_loss: 0.6037 - val_regime_head_sparse_categorical_accuracy: 0.6671 - val_return_head_loss: 0.4383 - val_return_head_mae: 0.4337 - val_direction_macro_f1: 0.4262 - val_direction_accuracy: 0.4666 - val_regime_accuracy: 0.6671 - val_regime_macro_f1: 0.6667 - val_selection_score: 0.5467 - learning_rate: 0.0010
+Epoch 8/25
+214/214 - 83s - 387ms/step - direction_head_loss: 0.9915 - direction_head_sparse_categorical_accuracy: 0.4994 - loss: 2.5735 - regime_head_loss: 0.6414 - regime_head_sparse_categorical_accuracy: 0.6243 - return_head_loss: 0.9413 - return_head_mae: 0.5600 - val_direction_head_loss: 1.0226 - val_direction_head_sparse_categorical_accuracy: 0.4681 - val_loss: 2.0654 - val_regime_head_loss: 0.6026 - val_regime_head_sparse_categorical_accuracy: 0.6670 - val_return_head_loss: 0.4387 - val_return_head_mae: 0.4333 - val_direction_macro_f1: 0.4236 - val_direction_accuracy: 0.4681 - val_regime_accuracy: 0.6670 - val_regime_macro_f1: 0.6662 - val_selection_score: 0.5453 - learning_rate: 5.0000e-04
+Epoch 9/25
+
+Epoch 9: ReduceLROnPlateau reducing learning rate to 0.0002500000118743628.
+214/214 - 83s - 388ms/step - direction_head_loss: 0.9899 - direction_head_sparse_categorical_accuracy: 0.5017 - loss: 2.5524 - regime_head_loss: 0.6408 - regime_head_sparse_categorical_accuracy: 0.6258 - return_head_loss: 0.9224 - return_head_mae: 0.5576 - val_direction_head_loss: 1.0234 - val_direction_head_sparse_categorical_accuracy: 0.4645 - val_loss: 2.0741 - val_regime_head_loss: 0.6028 - val_regime_head_sparse_categorical_accuracy: 0.6651 - val_return_head_loss: 0.4463 - val_return_head_mae: 0.4367 - val_direction_macro_f1: 0.4233 - val_direction_accuracy: 0.4645 - val_regime_accuracy: 0.6651 - val_regime_macro_f1: 0.6636 - val_selection_score: 0.5442 - learning_rate: 5.0000e-04
+Epoch 10/25
+214/214 - 80s - 376ms/step - direction_head_loss: 0.9875 - direction_head_sparse_categorical_accuracy: 0.5037 - loss: 2.5332 - regime_head_loss: 0.6401 - regime_head_sparse_categorical_accuracy: 0.6265 - return_head_loss: 0.9058 - return_head_mae: 0.5550 - val_direction_head_loss: 1.0227 - val_direction_head_sparse_categorical_accuracy: 0.4665 - val_loss: 2.0705 - val_regime_head_loss: 0.6034 - val_regime_head_sparse_categorical_accuracy: 0.6650 - val_return_head_loss: 0.4429 - val_return_head_mae: 0.4332 - val_direction_macro_f1: 0.4208 - val_direction_accuracy: 0.4665 - val_regime_accuracy: 0.6650 - val_regime_macro_f1: 0.6639 - val_selection_score: 0.5429 - learning_rate: 2.5000e-04
+Epoch 10: early stopping
+Restoring model weights from the end of the best epoch: 5.
+
+gru_s42: 10 epoch(s) in 14.2 min (85s/epoch) -> gru_s42_best.keras
+
+gru_s42 - VALIDATION direction macro-F1 / regime accuracy
+   15m  dir 0.4324  ##########............   regime 0.6170
+   30m  dir 0.4285  #########.............   regime 0.6610
+   45m  dir 0.4271  #########.............
+   60m  dir 0.4249  #########.............   regime 0.6955
+   75m  dir 0.4259  #########.............
+   90m  dir 0.4232  #########.............   regime 0.7111
+
+========================================================================
+TRAINING GRU  (gru_s43)  seed 43
+========================================================================
+Epoch 1/25
+214/214 - 87s - 406ms/step - direction_head_loss: 1.0998 - direction_head_sparse_categorical_accuracy: 0.4394 - loss: 3.0486 - regime_head_loss: 0.7253 - regime_head_sparse_categorical_accuracy: 0.5611 - return_head_loss: 1.2233 - return_head_mae: 0.7053 - val_direction_head_loss: 1.0320 - val_direction_head_sparse_categorical_accuracy: 0.4620 - val_loss: 2.0827 - val_regime_head_loss: 0.6187 - val_regime_head_sparse_categorical_accuracy: 0.6637 - val_return_head_loss: 0.4304 - val_return_head_mae: 0.4282 - val_direction_macro_f1: 0.4112 - val_direction_accuracy: 0.4620 - val_regime_accuracy: 0.6637 - val_regime_macro_f1: 0.6636 - val_selection_score: 0.5375 - learning_rate: 0.0010
+Epoch 2/25
+214/214 - 79s - 370ms/step - direction_head_loss: 1.0209 - direction_head_sparse_categorical_accuracy: 0.4723 - loss: 2.7041 - regime_head_loss: 0.6619 - regime_head_sparse_categorical_accuracy: 0.5984 - return_head_loss: 1.0212 - return_head_mae: 0.5857 - val_direction_head_loss: 1.0237 - val_direction_head_sparse_categorical_accuracy: 0.4705 - val_loss: 2.0651 - val_regime_head_loss: 0.6099 - val_regime_head_sparse_categorical_accuracy: 0.6679 - val_return_head_loss: 0.4300 - val_return_head_mae: 0.4285 - val_direction_macro_f1: 0.4126 - val_direction_accuracy: 0.4705 - val_regime_accuracy: 0.6679 - val_regime_macro_f1: 0.6670 - val_selection_score: 0.5402 - learning_rate: 0.0010
+Epoch 3/25
+214/214 - 97s - 455ms/step - direction_head_loss: 1.0084 - direction_head_sparse_categorical_accuracy: 0.4802 - loss: 2.6631 - regime_head_loss: 0.6526 - regime_head_sparse_categorical_accuracy: 0.6099 - return_head_loss: 1.0015 - return_head_mae: 0.5722 - val_direction_head_loss: 1.0221 - val_direction_head_sparse_categorical_accuracy: 0.4692 - val_loss: 2.0584 - val_regime_head_loss: 0.6075 - val_regime_head_sparse_categorical_accuracy: 0.6709 - val_return_head_loss: 0.4274 - val_return_head_mae: 0.4261 - val_direction_macro_f1: 0.4202 - val_direction_accuracy: 0.4692 - val_regime_accuracy: 0.6709 - val_regime_macro_f1: 0.6708 - val_selection_score: 0.5455 - learning_rate: 0.0010
+Epoch 4/25
+214/214 - 86s - 401ms/step - direction_head_loss: 1.0036 - direction_head_sparse_categorical_accuracy: 0.4848 - loss: 2.6470 - regime_head_loss: 0.6489 - regime_head_sparse_categorical_accuracy: 0.6147 - return_head_loss: 0.9952 - return_head_mae: 0.5692 - val_direction_head_loss: 1.0212 - val_direction_head_sparse_categorical_accuracy: 0.4689 - val_loss: 2.0576 - val_regime_head_loss: 0.6037 - val_regime_head_sparse_categorical_accuracy: 0.6694 - val_return_head_loss: 0.4311 - val_return_head_mae: 0.4293 - val_direction_macro_f1: 0.4229 - val_direction_accuracy: 0.4689 - val_regime_accuracy: 0.6694 - val_regime_macro_f1: 0.6683 - val_selection_score: 0.5461 - learning_rate: 0.0010
+Epoch 5/25
+214/214 - 84s - 391ms/step - direction_head_loss: 1.0006 - direction_head_sparse_categorical_accuracy: 0.4877 - loss: 2.6333 - regime_head_loss: 0.6468 - regime_head_sparse_categorical_accuracy: 0.6171 - return_head_loss: 0.9853 - return_head_mae: 0.5678 - val_direction_head_loss: 1.0220 - val_direction_head_sparse_categorical_accuracy: 0.4663 - val_loss: 2.0639 - val_regime_head_loss: 0.6014 - val_regime_head_sparse_categorical_accuracy: 0.6722 - val_return_head_loss: 0.4390 - val_return_head_mae: 0.4350 - val_direction_macro_f1: 0.4141 - val_direction_accuracy: 0.4663 - val_regime_accuracy: 0.6722 - val_regime_macro_f1: 0.6721 - val_selection_score: 0.5431 - learning_rate: 0.0010
+Epoch 6/25
+214/214 - 79s - 369ms/step - direction_head_loss: 0.9980 - direction_head_sparse_categorical_accuracy: 0.4919 - loss: 2.6175 - regime_head_loss: 0.6451 - regime_head_sparse_categorical_accuracy: 0.6203 - return_head_loss: 0.9739 - return_head_mae: 0.5660 - val_direction_head_loss: 1.0201 - val_direction_head_sparse_categorical_accuracy: 0.4676 - val_loss: 2.0531 - val_regime_head_loss: 0.6019 - val_regime_head_sparse_categorical_accuracy: 0.6698 - val_return_head_loss: 0.4297 - val_return_head_mae: 0.4280 - val_direction_macro_f1: 0.4266 - val_direction_accuracy: 0.4676 - val_regime_accuracy: 0.6698 - val_regime_macro_f1: 0.6694 - val_selection_score: 0.5482 - learning_rate: 0.0010
+Epoch 7/25
+214/214 - 78s - 363ms/step - direction_head_loss: 0.9961 - direction_head_sparse_categorical_accuracy: 0.4934 - loss: 2.6018 - regime_head_loss: 0.6438 - regime_head_sparse_categorical_accuracy: 0.6216 - return_head_loss: 0.9611 - return_head_mae: 0.5649 - val_direction_head_loss: 1.0265 - val_direction_head_sparse_categorical_accuracy: 0.4595 - val_loss: 2.0700 - val_regime_head_loss: 0.6056 - val_regime_head_sparse_categorical_accuracy: 0.6651 - val_return_head_loss: 0.4365 - val_return_head_mae: 0.4328 - val_direction_macro_f1: 0.4121 - val_direction_accuracy: 0.4595 - val_regime_accuracy: 0.6651 - val_regime_macro_f1: 0.6633 - val_selection_score: 0.5386 - learning_rate: 0.0010
+Epoch 8/25
+
+Epoch 8: ReduceLROnPlateau reducing learning rate to 0.0005000000237487257.
+214/214 - 87s - 406ms/step - direction_head_loss: 0.9940 - direction_head_sparse_categorical_accuracy: 0.4967 - loss: 2.5794 - regime_head_loss: 0.6431 - regime_head_sparse_categorical_accuracy: 0.6227 - return_head_loss: 0.9420 - return_head_mae: 0.5617 - val_direction_head_loss: 1.0221 - val_direction_head_sparse_categorical_accuracy: 0.4723 - val_loss: 2.0617 - val_regime_head_loss: 0.6012 - val_regime_head_sparse_categorical_accuracy: 0.6694 - val_return_head_loss: 0.4368 - val_return_head_mae: 0.4330 - val_direction_macro_f1: 0.4187 - val_direction_accuracy: 0.4723 - val_regime_accuracy: 0.6694 - val_regime_macro_f1: 0.6693 - val_selection_score: 0.5440 - learning_rate: 0.0010
+Epoch 9/25
+214/214 - 84s - 392ms/step - direction_head_loss: 0.9899 - direction_head_sparse_categorical_accuracy: 0.5010 - loss: 2.5443 - regime_head_loss: 0.6414 - regime_head_sparse_categorical_accuracy: 0.6242 - return_head_loss: 0.9126 - return_head_mae: 0.5564 - val_direction_head_loss: 1.0264 - val_direction_head_sparse_categorical_accuracy: 0.4611 - val_loss: 2.0761 - val_regime_head_loss: 0.6025 - val_regime_head_sparse_categorical_accuracy: 0.6677 - val_return_head_loss: 0.4456 - val_return_head_mae: 0.4390 - val_direction_macro_f1: 0.4179 - val_direction_accuracy: 0.4611 - val_regime_accuracy: 0.6677 - val_regime_macro_f1: 0.6670 - val_selection_score: 0.5428 - learning_rate: 5.0000e-04
+Epoch 10/25
+
+Epoch 10: ReduceLROnPlateau reducing learning rate to 0.0002500000118743628.
+214/214 - 85s - 396ms/step - direction_head_loss: 0.9888 - direction_head_sparse_categorical_accuracy: 0.5025 - loss: 2.5311 - regime_head_loss: 0.6414 - regime_head_sparse_categorical_accuracy: 0.6245 - return_head_loss: 0.9015 - return_head_mae: 0.5549 - val_direction_head_loss: 1.0239 - val_direction_head_sparse_categorical_accuracy: 0.4648 - val_loss: 2.0634 - val_regime_head_loss: 0.6021 - val_regime_head_sparse_categorical_accuracy: 0.6679 - val_return_head_loss: 0.4359 - val_return_head_mae: 0.4328 - val_direction_macro_f1: 0.4257 - val_direction_accuracy: 0.4648 - val_regime_accuracy: 0.6679 - val_regime_macro_f1: 0.6671 - val_selection_score: 0.5468 - learning_rate: 5.0000e-04
+Epoch 11/25
+214/214 - 84s - 393ms/step - direction_head_loss: 0.9862 - direction_head_sparse_categorical_accuracy: 0.5049 - loss: 2.5072 - regime_head_loss: 0.6402 - regime_head_sparse_categorical_accuracy: 0.6263 - return_head_loss: 0.8812 - return_head_mae: 0.5513 - val_direction_head_loss: 1.0220 - val_direction_head_sparse_categorical_accuracy: 0.4692 - val_loss: 2.0628 - val_regime_head_loss: 0.6023 - val_regime_head_sparse_categorical_accuracy: 0.6673 - val_return_head_loss: 0.4369 - val_return_head_mae: 0.4323 - val_direction_macro_f1: 0.4290 - val_direction_accuracy: 0.4692 - val_regime_accuracy: 0.6673 - val_regime_macro_f1: 0.6665 - val_selection_score: 0.5482 - learning_rate: 2.5000e-04
+Epoch 11: early stopping
+Restoring model weights from the end of the best epoch: 6.
+
+gru_s43: 11 epoch(s) in 15.5 min (84s/epoch) -> gru_s43_best.keras
+
+gru_s43 - VALIDATION direction macro-F1 / regime accuracy
+   15m  dir 0.4348  ##########............   regime 0.6176
+   30m  dir 0.4293  #########.............   regime 0.6607
+   45m  dir 0.4263  #########.............
+   60m  dir 0.4229  #########.............   regime 0.6945
+   75m  dir 0.4233  #########.............
+   90m  dir 0.4229  #########.............   regime 0.7066
+
+========================================================================
+TRAINING GRU  (gru_s44)  seed 44
+========================================================================
+Epoch 1/25
+214/214 - 87s - 405ms/step - direction_head_loss: 1.1045 - direction_head_sparse_categorical_accuracy: 0.4393 - loss: 3.0874 - regime_head_loss: 0.7270 - regime_head_sparse_categorical_accuracy: 0.5594 - return_head_loss: 1.2551 - return_head_mae: 0.7228 - val_direction_head_loss: 1.0342 - val_direction_head_sparse_categorical_accuracy: 0.4624 - val_loss: 2.0870 - val_regime_head_loss: 0.6184 - val_regime_head_sparse_categorical_accuracy: 0.6636 - val_return_head_loss: 0.4328 - val_return_head_mae: 0.4310 - val_direction_macro_f1: 0.4064 - val_direction_accuracy: 0.4624 - val_regime_accuracy: 0.6636 - val_regime_macro_f1: 0.6631 - val_selection_score: 0.5350 - learning_rate: 0.0010
+Epoch 2/25
+214/214 - 73s - 339ms/step - direction_head_loss: 1.0238 - direction_head_sparse_categorical_accuracy: 0.4702 - loss: 2.7124 - regime_head_loss: 0.6622 - regime_head_sparse_categorical_accuracy: 0.5980 - return_head_loss: 1.0255 - return_head_mae: 0.5899 - val_direction_head_loss: 1.0270 - val_direction_head_sparse_categorical_accuracy: 0.4633 - val_loss: 2.0710 - val_regime_head_loss: 0.6139 - val_regime_head_sparse_categorical_accuracy: 0.6658 - val_return_head_loss: 0.4284 - val_return_head_mae: 0.4267 - val_direction_macro_f1: 0.4128 - val_direction_accuracy: 0.4633 - val_regime_accuracy: 0.6658 - val_regime_macro_f1: 0.6656 - val_selection_score: 0.5393 - learning_rate: 0.0010
+Epoch 3/25
+214/214 - 77s - 359ms/step - direction_head_loss: 1.0088 - direction_head_sparse_categorical_accuracy: 0.4802 - loss: 2.6649 - regime_head_loss: 0.6527 - regime_head_sparse_categorical_accuracy: 0.6096 - return_head_loss: 1.0024 - return_head_mae: 0.5735 - val_direction_head_loss: 1.0234 - val_direction_head_sparse_categorical_accuracy: 0.4670 - val_loss: 2.0658 - val_regime_head_loss: 0.6088 - val_regime_head_sparse_categorical_accuracy: 0.6685 - val_return_head_loss: 0.4321 - val_return_head_mae: 0.4302 - val_direction_macro_f1: 0.4099 - val_direction_accuracy: 0.4670 - val_regime_accuracy: 0.6685 - val_regime_macro_f1: 0.6684 - val_selection_score: 0.5392 - learning_rate: 0.0010
+Epoch 4/25
+214/214 - 78s - 366ms/step - direction_head_loss: 1.0034 - direction_head_sparse_categorical_accuracy: 0.4855 - loss: 2.6483 - regime_head_loss: 0.6495 - regime_head_sparse_categorical_accuracy: 0.6143 - return_head_loss: 0.9953 - return_head_mae: 0.5697 - val_direction_head_loss: 1.0223 - val_direction_head_sparse_categorical_accuracy: 0.4657 - val_loss: 2.0627 - val_regime_head_loss: 0.6110 - val_regime_head_sparse_categorical_accuracy: 0.6638 - val_return_head_loss: 0.4279 - val_return_head_mae: 0.4267 - val_direction_macro_f1: 0.4189 - val_direction_accuracy: 0.4657 - val_regime_accuracy: 0.6638 - val_regime_macro_f1: 0.6632 - val_selection_score: 0.5413 - learning_rate: 0.0010
+Epoch 5/25
+214/214 - 77s - 361ms/step - direction_head_loss: 1.0007 - direction_head_sparse_categorical_accuracy: 0.4876 - loss: 2.6362 - regime_head_loss: 0.6473 - regime_head_sparse_categorical_accuracy: 0.6176 - return_head_loss: 0.9872 - return_head_mae: 0.5684 - val_direction_head_loss: 1.0198 - val_direction_head_sparse_categorical_accuracy: 0.4717 - val_loss: 2.0572 - val_regime_head_loss: 0.6041 - val_regime_head_sparse_categorical_accuracy: 0.6714 - val_return_head_loss: 0.4318 - val_return_head_mae: 0.4297 - val_direction_macro_f1: 0.4207 - val_direction_accuracy: 0.4717 - val_regime_accuracy: 0.6714 - val_regime_macro_f1: 0.6708 - val_selection_score: 0.5460 - learning_rate: 0.0010
+Epoch 6/25
+214/214 - 78s - 365ms/step - direction_head_loss: 0.9977 - direction_head_sparse_categorical_accuracy: 0.4913 - loss: 2.6189 - regime_head_loss: 0.6453 - regime_head_sparse_categorical_accuracy: 0.6195 - return_head_loss: 0.9761 - return_head_mae: 0.5672 - val_direction_head_loss: 1.0213 - val_direction_head_sparse_categorical_accuracy: 0.4680 - val_loss: 2.0571 - val_regime_head_loss: 0.6023 - val_regime_head_sparse_categorical_accuracy: 0.6693 - val_return_head_loss: 0.4321 - val_return_head_mae: 0.4310 - val_direction_macro_f1: 0.4283 - val_direction_accuracy: 0.4680 - val_regime_accuracy: 0.6693 - val_regime_macro_f1: 0.6690 - val_selection_score: 0.5488 - learning_rate: 0.0010
+Epoch 7/25
+214/214 - 83s - 386ms/step - direction_head_loss: 0.9960 - direction_head_sparse_categorical_accuracy: 0.4939 - loss: 2.6012 - regime_head_loss: 0.6440 - regime_head_sparse_categorical_accuracy: 0.6221 - return_head_loss: 0.9613 - return_head_mae: 0.5647 - val_direction_head_loss: 1.0196 - val_direction_head_sparse_categorical_accuracy: 0.4697 - val_loss: 2.0587 - val_regime_head_loss: 0.6037 - val_regime_head_sparse_categorical_accuracy: 0.6680 - val_return_head_loss: 0.4339 - val_return_head_mae: 0.4311 - val_direction_macro_f1: 0.4290 - val_direction_accuracy: 0.4697 - val_regime_accuracy: 0.6680 - val_regime_macro_f1: 0.6674 - val_selection_score: 0.5485 - learning_rate: 0.0010
+Epoch 8/25
+
+Epoch 8: ReduceLROnPlateau reducing learning rate to 0.0005000000237487257.
+214/214 - 77s - 358ms/step - direction_head_loss: 0.9940 - direction_head_sparse_categorical_accuracy: 0.4963 - loss: 2.5829 - regime_head_loss: 0.6434 - regime_head_sparse_categorical_accuracy: 0.6222 - return_head_loss: 0.9458 - return_head_mae: 0.5626 - val_direction_head_loss: 1.0208 - val_direction_head_sparse_categorical_accuracy: 0.4704 - val_loss: 2.0558 - val_regime_head_loss: 0.6048 - val_regime_head_sparse_categorical_accuracy: 0.6662 - val_return_head_loss: 0.4287 - val_return_head_mae: 0.4294 - val_direction_macro_f1: 0.4246 - val_direction_accuracy: 0.4704 - val_regime_accuracy: 0.6662 - val_regime_macro_f1: 0.6656 - val_selection_score: 0.5454 - learning_rate: 0.0010
+Epoch 9/25
+214/214 - 77s - 359ms/step - direction_head_loss: 0.9907 - direction_head_sparse_categorical_accuracy: 0.4990 - loss: 2.5495 - regime_head_loss: 0.6420 - regime_head_sparse_categorical_accuracy: 0.6243 - return_head_loss: 0.9173 - return_head_mae: 0.5580 - val_direction_head_loss: 1.0221 - val_direction_head_sparse_categorical_accuracy: 0.4680 - val_loss: 2.0623 - val_regime_head_loss: 0.6033 - val_regime_head_sparse_categorical_accuracy: 0.6662 - val_return_head_loss: 0.4353 - val_return_head_mae: 0.4305 - val_direction_macro_f1: 0.4277 - val_direction_accuracy: 0.4680 - val_regime_accuracy: 0.6662 - val_regime_macro_f1: 0.6657 - val_selection_score: 0.5469 - learning_rate: 5.0000e-04
+Epoch 10/25
+
+Epoch 10: ReduceLROnPlateau reducing learning rate to 0.0002500000118743628.
+214/214 - 83s - 389ms/step - direction_head_loss: 0.9889 - direction_head_sparse_categorical_accuracy: 0.5015 - loss: 2.5351 - regime_head_loss: 0.6419 - regime_head_sparse_categorical_accuracy: 0.6250 - return_head_loss: 0.9043 - return_head_mae: 0.5559 - val_direction_head_loss: 1.0235 - val_direction_head_sparse_categorical_accuracy: 0.4666 - val_loss: 2.0718 - val_regime_head_loss: 0.6040 - val_regime_head_sparse_categorical_accuracy: 0.6660 - val_return_head_loss: 0.4429 - val_return_head_mae: 0.4347 - val_direction_macro_f1: 0.4269 - val_direction_accuracy: 0.4666 - val_regime_accuracy: 0.6660 - val_regime_macro_f1: 0.6652 - val_selection_score: 0.5465 - learning_rate: 5.0000e-04
+Epoch 11/25
+214/214 - 79s - 370ms/step - direction_head_loss: 0.9867 - direction_head_sparse_categorical_accuracy: 0.5036 - loss: 2.5138 - regime_head_loss: 0.6413 - regime_head_sparse_categorical_accuracy: 0.6245 - return_head_loss: 0.8870 - return_head_mae: 0.5524 - val_direction_head_loss: 1.0214 - val_direction_head_sparse_categorical_accuracy: 0.4702 - val_loss: 2.0631 - val_regime_head_loss: 0.6037 - val_regime_head_sparse_categorical_accuracy: 0.6661 - val_return_head_loss: 0.4365 - val_return_head_mae: 0.4320 - val_direction_macro_f1: 0.4320 - val_direction_accuracy: 0.4702 - val_regime_accuracy: 0.6661 - val_regime_macro_f1: 0.6656 - val_selection_score: 0.5490 - learning_rate: 2.5000e-04
+Epoch 12/25
+214/214 - 84s - 392ms/step - direction_head_loss: 0.9858 - direction_head_sparse_categorical_accuracy: 0.5049 - loss: 2.5017 - regime_head_loss: 0.6408 - regime_head_sparse_categorical_accuracy: 0.6261 - return_head_loss: 0.8756 - return_head_mae: 0.5512 - val_direction_head_loss: 1.0215 - val_direction_head_sparse_categorical_accuracy: 0.4681 - val_loss: 2.0648 - val_regime_head_loss: 0.6042 - val_regime_head_sparse_categorical_accuracy: 0.6652 - val_return_head_loss: 0.4377 - val_return_head_mae: 0.4325 - val_direction_macro_f1: 0.4320 - val_direction_accuracy: 0.4681 - val_regime_accuracy: 0.6652 - val_regime_macro_f1: 0.6640 - val_selection_score: 0.5486 - learning_rate: 2.5000e-04
+Epoch 13/25
+
+Epoch 13: ReduceLROnPlateau reducing learning rate to 0.0001250000059371814.
+214/214 - 84s - 391ms/step - direction_head_loss: 0.9852 - direction_head_sparse_categorical_accuracy: 0.5054 - loss: 2.4965 - regime_head_loss: 0.6411 - regime_head_sparse_categorical_accuracy: 0.6254 - return_head_loss: 0.8696 - return_head_mae: 0.5505 - val_direction_head_loss: 1.0222 - val_direction_head_sparse_categorical_accuracy: 0.4703 - val_loss: 2.0648 - val_regime_head_loss: 0.6035 - val_regime_head_sparse_categorical_accuracy: 0.6663 - val_return_head_loss: 0.4376 - val_return_head_mae: 0.4317 - val_direction_macro_f1: 0.4308 - val_direction_accuracy: 0.4703 - val_regime_accuracy: 0.6663 - val_regime_macro_f1: 0.6657 - val_selection_score: 0.5485 - learning_rate: 2.5000e-04
+Epoch 14/25
+214/214 - 81s - 378ms/step - direction_head_loss: 0.9838 - direction_head_sparse_categorical_accuracy: 0.5070 - loss: 2.4835 - regime_head_loss: 0.6408 - regime_head_sparse_categorical_accuracy: 0.6261 - return_head_loss: 0.8590 - return_head_mae: 0.5481 - val_direction_head_loss: 1.0222 - val_direction_head_sparse_categorical_accuracy: 0.4680 - val_loss: 2.0692 - val_regime_head_loss: 0.6043 - val_regime_head_sparse_categorical_accuracy: 0.6651 - val_return_head_loss: 0.4412 - val_return_head_mae: 0.4346 - val_direction_macro_f1: 0.4299 - val_direction_accuracy: 0.4680 - val_regime_accuracy: 0.6651 - val_regime_macro_f1: 0.6640 - val_selection_score: 0.5475 - learning_rate: 1.2500e-04
+Epoch 15/25
+
+Epoch 15: ReduceLROnPlateau reducing learning rate to 6.25000029685907e-05.
+214/214 - 81s - 380ms/step - direction_head_loss: 0.9834 - direction_head_sparse_categorical_accuracy: 0.5068 - loss: 2.4804 - regime_head_loss: 0.6406 - regime_head_sparse_categorical_accuracy: 0.6265 - return_head_loss: 0.8562 - return_head_mae: 0.5479 - val_direction_head_loss: 1.0222 - val_direction_head_sparse_categorical_accuracy: 0.4688 - val_loss: 2.0673 - val_regime_head_loss: 0.6036 - val_regime_head_sparse_categorical_accuracy: 0.6653 - val_return_head_loss: 0.4399 - val_return_head_mae: 0.4335 - val_direction_macro_f1: 0.4313 - val_direction_accuracy: 0.4688 - val_regime_accuracy: 0.6653 - val_regime_macro_f1: 0.6647 - val_selection_score: 0.5483 - learning_rate: 1.2500e-04
+Epoch 16/25
+214/214 - 81s - 381ms/step - direction_head_loss: 0.9828 - direction_head_sparse_categorical_accuracy: 0.5076 - loss: 2.4745 - regime_head_loss: 0.6404 - regime_head_sparse_categorical_accuracy: 0.6264 - return_head_loss: 0.8511 - return_head_mae: 0.5467 - val_direction_head_loss: 1.0229 - val_direction_head_sparse_categorical_accuracy: 0.4670 - val_loss: 2.0709 - val_regime_head_loss: 0.6044 - val_regime_head_sparse_categorical_accuracy: 0.6647 - val_return_head_loss: 0.4421 - val_return_head_mae: 0.4345 - val_direction_macro_f1: 0.4313 - val_direction_accuracy: 0.4670 - val_regime_accuracy: 0.6647 - val_regime_macro_f1: 0.6637 - val_selection_score: 0.5480 - learning_rate: 6.2500e-05
+Epoch 16: early stopping
+Restoring model weights from the end of the best epoch: 11.
+
+gru_s44: 16 epoch(s) in 21.3 min (80s/epoch) -> gru_s44_best.keras
+
+gru_s44 - VALIDATION direction macro-F1 / regime accuracy
+   15m  dir 0.4365  ##########............   regime 0.6162
+   30m  dir 0.4319  ##########............   regime 0.6571
+   45m  dir 0.4329  ##########............
+   60m  dir 0.4299  #########.............   regime 0.6884
+   75m  dir 0.4308  #########.............
+   90m  dir 0.4297  #########.............   regime 0.7026
+
+validation  gru x3       dir macro-F1 0.4299   regime acc 0.6711   selection score 0.5505
+
+selected on validation: GRU
+
+========================================================================
+TEST - GRU x3 vs naive baselines (46,686 samples)
+========================================================================
+
+REGIME accuracy (higher is better) - THE ACCURACY HEADLINE
+  QUIET vs ACTIVE: will the next h candles be more volatile than
+  the trailing 24h average? Both classes are ~50% of the test set.
+     majority_class  gru_model      lift
+15m        0.503941   0.600351  0.096410
+30m        0.497515   0.639978  0.142462
+60m        0.495095   0.670779  0.175684
+90m        0.494217   0.679861  0.185645
+
+regime macro-F1
+     majority_class  gru_model
+15m        0.335080   0.598528
+30m        0.332227   0.638085
+60m        0.331146   0.669247
+90m        0.330753   0.677316
+
+gru - regime per-class detail
+     accuracy  macro_F1  base_rate  QUIET_prec  QUIET_rec  ACTIVE_prec  ACTIVE_rec        n
+15m  0.600351  0.598528   0.503941    0.621646   0.528797     0.584374    0.673043  46686.0
+30m  0.639978  0.638085   0.502485    0.659812   0.570500     0.625005    0.708768  46686.0
+60m  0.670779  0.669247   0.504905    0.689860   0.608679     0.655979    0.731673  46686.0
+90m  0.679861  0.677316   0.505783    0.708738   0.597972     0.659209    0.759878  46686.0
+
+DIRECTION macro-F1 (higher is better) - the harder, weaker question
+     majority_class  gru_model
+15m        0.233275   0.427869
+30m        0.228683   0.427608
+45m        0.227787   0.425049
+60m        0.225892   0.419422
+75m        0.226577   0.421067
+90m        0.226434   0.421162
+
+direction accuracy (shown for completeness; NEUTRAL dominates it)
+     majority_class  gru_model
+15m        0.538256   0.545046
+30m        0.522127   0.535642
+45m        0.519021   0.529880
+60m        0.512488   0.521720
+75m        0.514844   0.520392
+90m        0.514351   0.516322
+
+gru - direction per-class detail
+     accuracy  macro_F1  DOWN_prec  DOWN_rec   UP_prec    UP_rec  NEUTRAL_prec  NEUTRAL_rec
+15m  0.545046  0.427869   0.358635  0.242246  0.351310  0.241379      0.632222     0.805165
+30m  0.535642  0.427608   0.359068  0.255445  0.369305  0.234492      0.617403     0.801362
+45m  0.529880  0.425049   0.358930  0.267785  0.365113  0.224192      0.612091     0.792250
+60m  0.521720  0.419422   0.355456  0.267638  0.357326  0.216196      0.604094     0.786968
+75m  0.520392  0.421067   0.352960  0.272727  0.357787  0.223464      0.605788     0.775961
+90m  0.516322  0.421162   0.346427  0.293381  0.354223  0.217055      0.608852     0.761338
+
+MAE in percent return (lower is better)
+     naive_zero  gru_model
+15m    0.145945   0.146489
+30m    0.205102   0.207241
+45m    0.249220   0.252593
+60m    0.287304   0.292507
+75m    0.321510   0.327982
+90m    0.352292   0.361520
+
+ensemble of 3 members (gru_s42, gru_s43, gru_s44) - no single .keras is written
+
+saved to E:\_KDU\Academic\Semester 4\ai\GROUP AS\btc-trend-prediction\models:
+  inference_bundle.json  (5.8 KB)
+  train_metrics.json  (7.9 KB)
+
+Before quoting any number above:
+  1. REGIME accuracy is the headline. It has two ~50% classes, so its baseline
+     is ~0.50 and the lift is real. Quote its lift, not the raw number.
+  2. DIRECTION macro-F1 is the weak head. Check it still beats majority_class
+     and that no class has collapsed (per-class recalls).
+  3. Did the model beat naive_zero on MAE? It never has - say so plainly.
+  4. Was the test set touched exactly once? Everything above was selected on
+     validation; nothing in this script reads the test split before this block.
+
+Regime accuracy is not profitability either. Predicting "this will be an active
+window" is not a trade: there is no backtest, no fees, no slippage, and the test
+period is one regime. No claim is made.

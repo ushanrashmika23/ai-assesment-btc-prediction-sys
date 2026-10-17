@@ -1,0 +1,87 @@
+# Leakage audit
+
+| | |
+|---|---|
+| command | `python src/audit_leakage.py` |
+| exit code | `0` |
+| started (UTC) | 2026-09-28 14:41:24 |
+| finished (UTC) | 2026-09-28 14:41:37 |
+| wall clock | 12.9s |
+| python | 3.13.12 |
+| platform | Windows-11-10.0.26200-SP0 |
+| cwd | `E:\_KDU\Academic\Semester 4\ai\GROUP AS\btc-trend-prediction` |
+| git | `not a git repository` |
+| provenance | captured live by this invocation |
+
+Check 21 verifies the regime labels against the raw candle series (the market) rather than the shipped row sequence, and reads the real train offsets.
+
+Output below is verbatim stdout+stderr from the command above, with only the
+TensorFlow startup banner removed. Reproduce it by running the command shown.
+
+## Output
+
+```
+========================================================================
+DATA-LEAKAGE AUDIT
+========================================================================
+
+------------------------------------------------------------------------
+DYNAMIC CHECKS - real functions re-executed with a corrupted future
+------------------------------------------------------------------------
+  [PASS] 1. Features are strictly backward-looking
+         corrupted every row >= 2000; max |feature diff| on rows < 2000 = 0.000e+00 (expected exactly 0)
+  [PASS] 2. future_return_h[t] == 100*(close[t+h]/close[t]-1)
+         max abs deviation per horizon -> h=1:0e+00 h=2:0e+00 h=3:0e+00 h=4:0e+00 h=5:0e+00 h=6:0e+00
+  [PASS] 3. Targets spanning a data gap are invalidated to NaN
+         row 1499 future_return_15m = nan
+  [PASS] 4. Scaler statistics do not depend on validation/test rows
+         fitting on train rows before vs after corrupting all rows after the train boundary gives identical mean_ and scale_
+  [PASS] 5. Directional thresholds do not depend on validation/test targets
+         thresholds stable at 15m=(-0.110925, 0.097158), 90m=(-0.305177, 0.249083)
+  [PASS] 6. Splits are chronological and non-overlapping
+         verified structurally below on the real artefacts (split indices are monotonic slices of a time-ordered array)
+
+------------------------------------------------------------------------
+STATIC CHECKS - artefacts written to data/final
+------------------------------------------------------------------------
+  [PASS] 7. All expected artefacts exist
+         11 files present
+  [PASS] 8. Array shapes match (n_samples, n_features) / (n_samples, n_horizons)
+         X (221413, 49) (46887, 49) (46749, 49) | y (218515, 6) | dir (218515, 6)
+  [PASS] 9. No NaN/Inf in the final scaled arrays
+         all finite
+  [PASS] 10. Train < Validation < Test in wall-clock time (no shuffle)
+         2017-08-23 21:45:00+00:00 .. 2024-01-15 02:00:00+00:00 | 2024-01-15 19:45:00+00:00 .. 2025-05-17 13:30:00+00:00 | 2025-05-18 07:15:00+00:00 .. 2026-09-16 14:30:00+00:00
+  [PASS] 11a. Timestamp arrays are plain int64 (no pickled objects)
+         dtype=int64  first=2017-08-23 21:45:00+00:00  last=2026-09-16 14:30:00+00:00
+  [PASS] 11. Purge/embargo separates the splits (no label or window overlap)
+         train->val 71 rows (1065 min); val->test 71 rows (1065 min) | required > 69 rows (lookback 64 - 1 + horizon 6) and >= 64 rows of window separation; purge=70 samples
+  [PASS] 12a. X_*.npy == scaler(raw CSV features) exactly where they overlap
+         train: max|block - scaler(CSV)| = 3.81e-06; val: max|block - scaler(CSV)| = 3.81e-06; test: max|block - scaler(CSV)| = 3.81e-06
+  [PASS] 12. Scaler was fitted on the training split
+         train block: max|mean|=0.0166 (0 expected), mean std=0.9305 (1.0 before the +/-5.0 sigma clip), 0.329% of values pinned at the clip bounds
+  [PASS] 13. Direction labels == threshold(return) using frozen train thresholds
+         labels reproduce exactly from the stored return + threshold
+  [PASS] 14. Every class present at every horizon (no empty class)
+         max class share 53.8% (<100% means every class is populated)
+  [PASS] 15. dataset_metadata.json is complete
+         10 sections present
+  [PASS] 16. No target column appears among the model features
+         49 features, 0 of the 21 target columns among them
+  [PASS] 17. No module-level TensorFlow/PyTorch import in src/
+         local pipeline is TF/PyTorch-free; 11 deliberate lazy import(s) inside functions: evaluate.py: from tensorflow import keras                                # noqa: PLC0415; evaluate.py: from tensorflow import keras                            # noqa: PLC0415; evaluate.py: from tensorflow import keras                            # noqa: PLC0415; evaluate.py: import tensorflow as tf; evaluate.py: from tensorflow import keras; inference.py: from tensorflow import keras          # noqa: PLC0415 - deliberate lazy import; plot_trend.py: import tensorflow as tf; plot_trend.py: from tensorflow import keras; train.py: import tensorflow as tf; train.py: import tensorflow as tf; train.py: from tensorflow import keras
+  [PASS] 18. Thresholds declared as train-derived
+         mode=train_quantile (train_quantile), derived_from=TRAIN split only
+  [PASS] 19. Window offsets never slice past the end of their block
+         train: 218,515 offsets, max 221,349 + 64 <= 221,413 rows; val: 46,824 offsets, max 46,823 + 64 <= 46,887 rows; test: 46,686 offsets, max 46,685 + 64 <= 46,749 rows
+  [PASS] 20. No sequence window straddles a data gap
+         train: 0 crossing / 218,515; val: 0 crossing / 46,824; test: 0 crossing / 46,686  (312,025 windows checked, 0 crossings means every window is one contiguous run of real candles)
+  [PASS] 21. Regime target is backward-looking and gap-safe
+         reference = trailing 96 candles (backward-only by truncation), forward = t+1..t+h, no shipped row without a market label and none where the market defines none, across all 4 horizons; 4,441 rows (1.41%) labelled across a dropped candle - disclosed and within the 2% bound; balance train 50.0% ACTIVE, val 50.6% ACTIVE, test 49.6% ACTIVE (train->test drift 0.39pp)
+  [PASS] 22. Regime classes are balanced across splits
+         largest deviation from 50/50 across all splits and horizons: 0.69pp (val/30m) - so ~0.50 IS the baseline and any excess accuracy is skill, not a majority class
+
+========================================================================
+AUDIT RESULT: 24/24 checks passed
+========================================================================
+```

@@ -1,0 +1,153 @@
+loading the model and taking the first reading (TensorFlow import takes ~10s) ...
+  [ok]   REST top-up  664 candles
+[store] +10 row(s) for 2026-09-29 15:45:00, 2 target(s) settled
+  model   : inference_bundle.json
+  candle  : 2026-09-29 15:45:00+00:00
+  log     : E:\_KDU\Academic\Semester 4\ai\GROUP AS\btc-trend-prediction\models\dashboard_log_inference_bundle.json
+  recorder: every 30s, browser or not
+
+API on http://127.0.0.1:8000   docs at /docs
+INFO:     127.0.0.1:13051 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6028 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11626 - "GET /api/health HTTP/1.1" 200 OK
+  [ok]   REST top-up  664 candles
+[store] +10 row(s) for 2026-09-29 16:00:00, 1 target(s) settled
+INFO:     127.0.0.1:3490 - "GET /api/health HTTP/1.1" 200 OK
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+INFO:     127.0.0.1:9594 - "GET / HTTP/1.1" 404 Not Found
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+INFO:     127.0.0.1:8229 - "GET / HTTP/1.1" 404 Not Found
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+[store] +10 row(s) for 2026-09-29 16:15:00, 1 target(s) settled
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+INFO:     127.0.0.1:5193 - "GET /api/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11156 - "GET /api/snapshot HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12508 - "GET /api/snapshot HTTP/1.1" 200 OK
+  [ok]   REST top-up  664 candles
+INFO:     127.0.0.1:14346 - "GET /api/snapshot HTTP/1.1" 200 OK
+  [ok]   REST top-up  664 candles
+INFO:     127.0.0.1:5562 - "GET /api/stream HTTP/1.1" 200 OK
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+INFO:     127.0.0.1:9462 - "GET /api/snapshot HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5252 - "GET /api/stream HTTP/1.1" 200 OK
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+[store] +10 row(s) for 2026-09-29 16:30:00, 1 target(s) settled
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+[store] +10 row(s) for 2026-09-29 16:45:00, 1 target(s) settled
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+[store] +10 row(s) for 2026-09-29 17:00:00, 1 target(s) settled
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790115080935&endTime=1790712680935&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790115173311&endTime=1790712773311&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790126151975&endTime=1790723751975&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790126244940&endTime=1790723844940&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790126337917&endTime=1790723937917&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790126430841&endTime=1790724030841&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790126523839&endTime=1790724123839&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790126616867&endTime=1790724216867&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790126709805&endTime=1790724309805&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790126802770&endTime=1790724402770&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790126925734&endTime=1790724525734&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790127018688&endTime=1790724618688&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790127111647&endTime=1790724711647&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790127234589&endTime=1790724834589&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790127327519&endTime=1790724927519&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+    [warn] giving up on https://api.binance.com/api/v3/klines: HTTPSConnectionPool(host='api.binance.com', port=443): Max retries exceeded with url: /api/v3/klines?symbol=BTCUSDT&interval=15m&startTime=1790131580451&endTime=1790729180451&limit=1000 (Caused by NameResolutionError("HTTPSConnection(host='api.binance.com', port=443): Failed to resolve 'api.binance.com' ([Errno 11001] getaddrinfo failed)"))
+  [ok]   REST top-up  664 candles
+[store] +10 row(s) for 2026-09-30 02:45:00, 6 target(s) settled
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+  [ok]   REST top-up  664 candles
+[store] +10 row(s) for 2026-09-30 03:00:00, 1 target(s) settled
