@@ -1,0 +1,48 @@
+# Data pipeline + dashboard requirements.
+#
+# TensorFlow / PyTorch are intentionally ABSENT: the data pipeline
+# (config, data_download, preprocessing, features, targets, sequences,
+# pipeline, audit_leakage) is pure numpy/pandas/scikit-learn and stays that
+# way. It is imported by src/inference.py's input path too, which is TF-free
+# by design.
+#
+# Training (src/train.py, notebooks 04 and 05) and the model-loading half of
+# the dashboard need TensorFlow. Install it separately - see PROJECT_USAGE.txt
+# section 2 - so that a broken TensorFlow install can never take the data
+# pipeline down with it.
+
+numpy>=1.26
+pandas>=2.0
+scikit-learn>=1.3
+requests>=2.31
+rich>=13.0            # the live terminal dashboard (src/dashboard.py)
+
+# Optional: only needed if you want to read the notebook files programmatically
+# or use the parquet export path.
+# pyarrow>=14.0
+# jupyterlab>=4.0
+
+# Optional: chart rendering only (src/plot_trend.py). The charts are written to
+# PNG with the "Agg" backend, so no display is required.
+# matplotlib>=3.7
+
+# Training, evaluation and the dashboard. These load a trained model, so they
+# need a framework - see PROJECT_USAGE.txt section 2.
+# tensorflow>=2.16
+# xgboost>=2.0        # the XGBoost baseline in notebooks 04 and 05
+
+# The React dashboard's API (src/server.py). Optional in exactly the same way
+# TensorFlow is: the data pipeline, the leakage audit and the terminal
+# dashboard all run without it. It needs TensorFlow too, because it loads a
+# model - but the React UI itself is independent, and the API serves a
+# documented JSON contract that any other client could read.
+#   pip install fastapi uvicorn
+# fastapi>=0.110
+# uvicorn>=0.27
+
+# The React app in web/ has its own dependencies and its own lockfile:
+#   cd web && npm install && npm run build
+# They are deliberately NOT merged into this file. Python's package manager
+# and npm resolve version graphs differently, and mixing them here would make
+# `pip install -r requirements.txt` fail for a reason that has nothing to do
+# with this project.
