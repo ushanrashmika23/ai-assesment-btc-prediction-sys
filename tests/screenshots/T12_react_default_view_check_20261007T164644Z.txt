@@ -1,0 +1,41 @@
+$ node web/check.mjs   (cwd=E:\_KDU\Academic\Semester 4\ai\GROUP AS\btc-trend-prediction\web)
+exit code: 0
+captured: 2026-10-07T22:16:44+05:30
+==============================================================================
+  note  the snapshot fixture is 215.2h old (anchor 2026-09-28T17:30:00.000Z) - re-capture it if a payload field has been added since
+
+real snapshot:
+  ok    PriceChart                 2071 chars  (container only)
+  ok    PriceChart(simple)         1300 chars  (container only)
+  ok    SimpleView                 6045 chars
+  ok    VolumeChart                  32 chars  (container only)
+  ok    DirectionBars              2664 chars
+  ok    ActivityBars               1976 chars
+  ok    TrackRecord(regime)         349 chars
+  ok    TrackRecord(direction)      432 chars
+  ok    ReturnDist                 1124 chars
+  ok    MetricsTable               1988 chars
+  ok    CallsTable                19702 chars
+
+degenerate payloads (must degrade, not throw):
+  ok    PriceChart(no history)     1647 chars
+  ok    PriceChart(gapped history)   1899 chars
+  ok    SimpleView(no calls)       5969 chars
+  ok    SimpleView(no activity)    6087 chars
+  ok    SimpleView(err)            4486 chars
+  ok    CallsTable(empty)           212 chars
+  ok    TrackRecord(empty)          504 chars
+  ok    ReturnDist(no bands)        118 chars
+  ok    MetricsTable(none)           54 chars
+  ok    ActivityBars(none)           56 chars
+  ok    App(err)                   5467 chars
+
+default view (must be the simple one):
+  ok    opens on the simple view
+  ok    the advanced panels are not mounted
+  ok    the toggle is offered
+  ok    the price chart is present
+  ok    the recorded history curve is claimed
+  ok    the advanced-only layers are not claimed
+
+all components rendered

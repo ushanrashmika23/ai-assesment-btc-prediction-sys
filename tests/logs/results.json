@@ -1,0 +1,289 @@
+{
+  "suite": "BTCUSDT 15m trend prediction - acceptance suite (T01-T13)",
+  "generated_utc": "2026-10-13T16:03:58+00:00",
+  "started": "2026-10-13T16:03:56+00:00",
+  "finished": "2026-10-13T16:03:58+00:00",
+  "duration_seconds": 2.203,
+  "command": "pytest tests --collect-only -q",
+  "exit_code": 0,
+  "environment": {
+    "python": "3.13.12",
+    "executable": "C:\\Users\\ushan\\miniconda3\\python.exe",
+    "platform": "win32",
+    "node": "C:\\Program Files\\nodejs\\node.EXE"
+  },
+  "project_root": ".",
+  "totals": {
+    "n_tests": 0,
+    "passed": 0,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "cases_passed": 0,
+    "cases_failed": 0,
+    "cases_blocked": 0,
+    "cases_partial": 0
+  },
+  "test_cases": [
+    {
+      "id": "T01",
+      "title": "Leakage - corrupt every row after row 2,000, recompute features; earlier features unchanged (maximum difference = 0)",
+      "status": "NOT IMPLEMENTED",
+      "n_tests": 0,
+      "n_passed": 0,
+      "n_failed": 0,
+      "n_skipped": 0,
+      "duration_seconds": 0,
+      "tests": []
+    },
+    {
+      "id": "T02",
+      "title": "Leakage - corrupt validation/test rows and refit the scaler; identical mean and scale",
+      "status": "NOT IMPLEMENTED",
+      "n_tests": 0,
+      "n_passed": 0,
+      "n_failed": 0,
+      "n_skipped": 0,
+      "duration_seconds": 0,
+      "tests": []
+    },
+    {
+      "id": "T03",
+      "title": "Windows - every generated window checked for gap crossing (expected 0 crossings; total windows checked reported)",
+      "status": "NOT IMPLEMENTED",
+      "n_tests": 0,
+      "n_passed": 0,
+      "n_failed": 0,
+      "n_skipped": 0,
+      "duration_seconds": 0,
+      "tests": []
+    },
+    {
+      "id": "T04",
+      "title": "Split - chronological ordering and purge boundaries (train < validation < test, no invalid overlap)",
+      "status": "NOT IMPLEMENTED",
+      "n_tests": 0,
+      "n_passed": 0,
+      "n_failed": 0,
+      "n_skipped": 0,
+      "duration_seconds": 0,
+      "tests": []
+    },
+    {
+      "id": "T05",
+      "title": "Audit - all 24 existing data-quality/audit checks pass (24/24)",
+      "status": "NOT IMPLEMENTED",
+      "n_tests": 0,
+      "n_passed": 0,
+      "n_failed": 0,
+      "n_skipped": 0,
+      "duration_seconds": 0,
+      "tests": []
+    },
+    {
+      "id": "T06",
+      "title": "API - snapshot, candles, prediction, track-record and metrics endpoints return HTTP 200 with valid response content",
+      "status": "NOT IMPLEMENTED",
+      "n_tests": 0,
+      "n_passed": 0,
+      "n_failed": 0,
+      "n_skipped": 0,
+      "duration_seconds": 0,
+      "tests": []
+    },
+    {
+      "id": "T07",
+      "title": "API - candles?limit=5 returns HTTP 422 (minimum limit is 10)",
+      "status": "NOT IMPLEMENTED",
+      "n_tests": 0,
+      "n_passed": 0,
+      "n_failed": 0,
+      "n_skipped": 0,
+      "duration_seconds": 0,
+      "tests": []
+    },
+    {
+      "id": "T08",
+      "title": "API - event stream opens and emits parseable snapshot/event frames",
+      "status": "NOT IMPLEMENTED",
+      "n_tests": 0,
+      "n_passed": 0,
+      "n_failed": 0,
+      "n_skipped": 0,
+      "duration_seconds": 0,
+      "tests": []
+    },
+    {
+      "id": "T09",
+      "title": "Store - recording the exact same window twice creates no duplicate rows",
+      "status": "NOT IMPLEMENTED",
+      "n_tests": 0,
+      "n_passed": 0,
+      "n_failed": 0,
+      "n_skipped": 0,
+      "duration_seconds": 0,
+      "tests": []
+    },
+    {
+      "id": "T10",
+      "title": "Store - opened read-only, a write is refused and the existing row count is unchanged",
+      "status": "NOT IMPLEMENTED",
+      "n_tests": 0,
+      "n_passed": 0,
+      "n_failed": 0,
+      "n_skipped": 0,
+      "duration_seconds": 0,
+      "tests": []
+    },
+    {
+      "id": "T11",
+      "title": "Dashboard - every panel renders with real data and with empty data, without raising",
+      "status": "NOT IMPLEMENTED",
+      "n_tests": 0,
+      "n_passed": 0,
+      "n_failed": 0,
+      "n_skipped": 0,
+      "duration_seconds": 0,
+      "tests": []
+    },
+    {
+      "id": "T12",
+      "title": "Dashboard - opens on the simple/default view and the toggle to the advanced view is available",
+      "status": "NOT IMPLEMENTED",
+      "n_tests": 0,
+      "n_passed": 0,
+      "n_failed": 0,
+      "n_skipped": 0,
+      "duration_seconds": 0,
+      "tests": []
+    },
+    {
+      "id": "T13",
+      "title": "Markers - out-of-order calls are sorted, merged and never crash (10 calls -> 6 markers)",
+      "status": "NOT IMPLEMENTED",
+      "n_tests": 0,
+      "n_passed": 0,
+      "n_failed": 0,
+      "n_skipped": 0,
+      "duration_seconds": 0,
+      "tests": []
+    }
+  ],
+  "tests": [],
+  "evidence": {
+    "screenshots": [
+      {
+        "path": "tests/screenshots/T05_audit_transcript_20261007T153528Z.txt",
+        "bytes": 5909,
+        "modified_utc": "2026-10-07T15:35:28+00:00"
+      },
+      {
+        "path": "tests/screenshots/T05_audit_transcript_20261007T164640Z.txt",
+        "bytes": 5909,
+        "modified_utc": "2026-10-07T16:46:40+00:00"
+      },
+      {
+        "path": "tests/screenshots/T11_terminal_dashboard_empty_data_20261007T153528Z.txt",
+        "bytes": 8023,
+        "modified_utc": "2026-10-07T15:35:28+00:00"
+      },
+      {
+        "path": "tests/screenshots/T11_terminal_dashboard_empty_data_20261007T164640Z.txt",
+        "bytes": 8023,
+        "modified_utc": "2026-10-07T16:46:40+00:00"
+      },
+      {
+        "path": "tests/screenshots/T11_terminal_dashboard_real_data_20261007T153528Z.html",
+        "bytes": 313,
+        "modified_utc": "2026-10-07T15:35:28+00:00"
+      },
+      {
+        "path": "tests/screenshots/T11_terminal_dashboard_real_data_20261007T153528Z.svg",
+        "bytes": 2135,
+        "modified_utc": "2026-10-07T15:35:28+00:00"
+      },
+      {
+        "path": "tests/screenshots/T11_terminal_dashboard_real_data_20261007T153528Z.txt",
+        "bytes": 15936,
+        "modified_utc": "2026-10-07T15:35:28+00:00"
+      },
+      {
+        "path": "tests/screenshots/T11_terminal_dashboard_real_data_20261007T164640Z.html",
+        "bytes": 313,
+        "modified_utc": "2026-10-07T16:46:40+00:00"
+      },
+      {
+        "path": "tests/screenshots/T11_terminal_dashboard_real_data_20261007T164640Z.svg",
+        "bytes": 2135,
+        "modified_utc": "2026-10-07T16:46:40+00:00"
+      },
+      {
+        "path": "tests/screenshots/T11_terminal_dashboard_real_data_20261007T164640Z.txt",
+        "bytes": 15936,
+        "modified_utc": "2026-10-07T16:46:40+00:00"
+      },
+      {
+        "path": "tests/screenshots/T12_react_advanced_view.png",
+        "bytes": 89774,
+        "modified_utc": "2026-10-07T16:46:49+00:00"
+      },
+      {
+        "path": "tests/screenshots/T12_react_advanced_view.txt",
+        "bytes": 11011,
+        "modified_utc": "2026-10-07T16:46:49+00:00"
+      },
+      {
+        "path": "tests/screenshots/T12_react_default_view_check_20261007T153530Z.txt",
+        "bytes": 1830,
+        "modified_utc": "2026-10-07T15:35:30+00:00"
+      },
+      {
+        "path": "tests/screenshots/T12_react_default_view_check_20261007T164644Z.txt",
+        "bytes": 1830,
+        "modified_utc": "2026-10-07T16:46:44+00:00"
+      },
+      {
+        "path": "tests/screenshots/T12_react_simple_view.png",
+        "bytes": 99858,
+        "modified_utc": "2026-10-07T16:46:49+00:00"
+      },
+      {
+        "path": "tests/screenshots/T12_react_simple_view.txt",
+        "bytes": 3001,
+        "modified_utc": "2026-10-07T16:46:49+00:00"
+      },
+      {
+        "path": "tests/screenshots/T13_marker_probe_report_20261007T153544Z.txt",
+        "bytes": 4391,
+        "modified_utc": "2026-10-07T15:35:44+00:00"
+      },
+      {
+        "path": "tests/screenshots/T13_marker_probe_report_20261007T164701Z.txt",
+        "bytes": 4391,
+        "modified_utc": "2026-10-07T16:47:01+00:00"
+      },
+      {
+        "path": "tests/screenshots/T13_project_markers_check_20261007T153544Z.txt",
+        "bytes": 1508,
+        "modified_utc": "2026-10-07T15:35:44+00:00"
+      },
+      {
+        "path": "tests/screenshots/T13_project_markers_check_20261007T164701Z.txt",
+        "bytes": 1508,
+        "modified_utc": "2026-10-07T16:47:01+00:00"
+      }
+    ],
+    "logs": [
+      {
+        "path": "tests/logs/results.json",
+        "bytes": 60877,
+        "modified_utc": "2026-10-07T16:47:02+00:00"
+      },
+      {
+        "path": "tests/logs/test_run.log",
+        "bytes": 26084,
+        "modified_utc": "2026-10-07T16:48:49+00:00"
+      }
+    ]
+  }
+}

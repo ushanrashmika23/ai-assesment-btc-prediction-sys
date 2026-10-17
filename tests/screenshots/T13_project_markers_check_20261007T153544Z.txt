@@ -1,0 +1,32 @@
+$ node web/markers-check.mjs   (cwd=E:\_KDU\Academic\Semester 4\ai\GROUP AS\btc-trend-prediction\web)
+exit code: 0
+captured: 2026-10-07T21:05:44+05:30
+==============================================================================
+markers.js — contract check
+  ok    the rebuilt issue order really is pathological
+        (68 duplicate(s) and the backwards step absorbed either way)
+  ok    the fix does not depend on how the calls arrive
+  ok    a call whose target candle has not arrived draws no marker
+  ok    the chart accepts the markers built from that payload
+  ok    every resolved call is accounted for (merged, not silently dropped)
+  ok    same-candle calls from both heads collapse into one marker
+  ok    a lone call keeps the marker it always had
+  ok    missing / null / NaN / string / unknown-candle times are skipped
+  ok    several windows in issue order come out chronological
+  ok    empty and null payloads produce no markers rather than throwing
+
+fixture, once its candles arrive: 80 calls -> 12 markers
+  1790612100   0/2  above  #ef5350
+  1790613000   2/2  below  #26a69a
+  1790613900   0/3  above  #ef5350
+  1790614800   6/6  below  #26a69a
+  1790615700   0/6  above  #ef5350
+  1790616600   11/11 below  #26a69a
+  1790617500   0/12 above  #ef5350
+  1790618400   11/11 below  #26a69a
+  1790619300   0/9  above  #ef5350
+  1790620200   8/8  below  #26a69a
+  1790621100   0/6  above  #ef5350
+  1790622000   4/4  below  #26a69a
+
+all marker checks passed

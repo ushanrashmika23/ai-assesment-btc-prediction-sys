@@ -1,0 +1,175 @@
+{
+  "probe": "markers",
+  "node": "v24.14.1",
+  "module": "E:\\_KDU\\Academic\\Semester 4\\ai\\GROUP AS\\btc-trend-prediction\\web\\src\\markers.js",
+  "palette": {
+    "up": "#26a69a",
+    "down": "#ef5350",
+    "neutral": "#d9a441"
+  },
+  "fixture": {
+    "anchor_ms": 1790610300000,
+    "candle_ms": 900000,
+    "calls": 10,
+    "distinct_candles": 6
+  },
+  "expected": [
+    {
+      "time": 1790611200,
+      "text": "0/2",
+      "position": "aboveBar",
+      "color": "#ef5350"
+    },
+    {
+      "time": 1790612100,
+      "text": "1/2",
+      "position": "belowBar",
+      "color": "#d9a441"
+    },
+    {
+      "time": 1790613000,
+      "text": "\u25cf",
+      "position": "aboveBar",
+      "color": "#ef5350"
+    },
+    {
+      "time": 1790613900,
+      "text": "2/2",
+      "position": "belowBar",
+      "color": "#26a69a"
+    },
+    {
+      "time": 1790614800,
+      "text": "\u25cf",
+      "position": "aboveBar",
+      "color": "#ef5350"
+    },
+    {
+      "time": 1790615700,
+      "text": "2/2",
+      "position": "belowBar",
+      "color": "#26a69a"
+    }
+  ],
+  "canonical": [
+    {
+      "time": 1790611200,
+      "text": "0/2",
+      "position": "aboveBar",
+      "color": "#ef5350",
+      "shape": "circle",
+      "size": 1
+    },
+    {
+      "time": 1790612100,
+      "text": "1/2",
+      "position": "belowBar",
+      "color": "#d9a441",
+      "shape": "circle",
+      "size": 1
+    },
+    {
+      "time": 1790613000,
+      "text": "\u25cf",
+      "position": "aboveBar",
+      "color": "#ef5350",
+      "shape": "circle",
+      "size": 1
+    },
+    {
+      "time": 1790613900,
+      "text": "2/2",
+      "position": "belowBar",
+      "color": "#26a69a",
+      "shape": "circle",
+      "size": 1
+    },
+    {
+      "time": 1790614800,
+      "text": "\u25cf",
+      "position": "aboveBar",
+      "color": "#ef5350",
+      "shape": "circle",
+      "size": 1
+    },
+    {
+      "time": 1790615700,
+      "text": "2/2",
+      "position": "belowBar",
+      "color": "#26a69a",
+      "shape": "circle",
+      "size": 1
+    }
+  ],
+  "checks": [
+    {
+      "name": "the fixture really is out of order and really is colliding",
+      "ok": true,
+      "detail": "10 calls, 6 distinct candles, 1 backwards step(s)"
+    },
+    {
+      "name": "10 out-of-order calls produce 6 merged markers",
+      "ok": true,
+      "detail": "10 calls -> 6 markers"
+    },
+    {
+      "name": "the 6 markers are exactly the hand-computed ones",
+      "ok": true,
+      "detail": "1790611200:0/2 1790612100:1/2 1790613000:\u25cf 1790613900:2/2 1790614800:\u25cf 1790615700:2/2"
+    },
+    {
+      "name": "the markers are sorted, strictly ascending, on real candles",
+      "ok": true,
+      "detail": "6 markers, strictly ascending"
+    },
+    {
+      "name": "input order does not change the output (every rotation + reversal)",
+      "ok": true,
+      "detail": "12 orderings agree"
+    },
+    {
+      "name": "merging preserves every call - none is silently dropped",
+      "ok": true,
+      "detail": "10 calls accounted for by 6 markers"
+    },
+    {
+      "name": "a wrong call sits above the bar, a right one below",
+      "ok": true,
+      "detail": "position rule holds for every merged marker"
+    },
+    {
+      "name": "colour follows the tally: all right, all wrong, or split",
+      "ok": true,
+      "detail": "2/2=#26a69a 1/2=#d9a441 0/2=#ef5350"
+    },
+    {
+      "name": "a lone call keeps the single-call marker it always had",
+      "ok": true,
+      "detail": "direction \u25cf / regime a\u00b7x, both positions"
+    },
+    {
+      "name": "unplaceable calls are skipped, not drawn, and never throw",
+      "ok": true,
+      "detail": "13 unplaceable calls -> 0 markers"
+    },
+    {
+      "name": "empty, null and undefined payloads produce an empty array",
+      "ok": true,
+      "detail": "7 degenerate input pairs -> []"
+    },
+    {
+      "name": "a candle missing from the series is not marked",
+      "ok": true,
+      "detail": "axis cut to 3 candles -> 3 markers"
+    },
+    {
+      "name": "several windows in issue order come out chronological",
+      "ok": true,
+      "detail": "20 calls -> 12 markers, all accounted for"
+    }
+  ],
+  "n_checks": 13,
+  "failures": 0
+}
+
+--- stderr ---

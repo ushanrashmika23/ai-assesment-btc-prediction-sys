@@ -1,0 +1,264 @@
+captured: 2026-10-07T22:16:49+05:30
+url: http://127.0.0.1:12365
+view: advanced (after clicking 'Advanced view →')
+toggle label now: '← Simple view'
+rendered text: 10437 chars
+==============================================================================
+BTCUSDT
+15m
+83,967.23
++0.07% on the last candle
+live (pushed)
+candle 17:30:00 UTC
+next candle in 00:00
+model inference_bundle.json
+updated 16:46:48
+← Simple view
+ACTIVITY CALL · 15M
+ACTIVE
+59.4% confident — measured right ~60–68% of the time vs a 50% baseline
+DIRECTION CALL · 15M
+NEUTRAL
+36.7% confident — close to a coin flip; read the activity line instead
+ACTIVITY CALL · 90M
+ACTIVE
+72.7% confident
+LIVE ACTIVITY HIT RATE
+57.1%
+12/21 resolved calls · baseline 50%
+TRACKED CANDLES
+568
+model input [1,64,49]
+ACTUAL PRICE VS PREDICTED CURVE — SAME CHART, SAME TIME AXIS
+240 candles of history + 6-candle projection
+actual price
+model projection
+no-change baseline
+realised-outcome range (train)
+recorded projections
+Recorded projections: 6 points across 1 windows — the line breaks where the dashboard was not running.
+MEASURED: the regression head is WORSE than predicting the mean at every horizon - read 'expected' as an output, not a forecast. The direction head is the part that carries the signal.
+Projection points: 15m 83,917.73 (-0.059%)30m 83,914.31 (-0.063%)45m 83,892.65 (-0.089%)60m 83,880.92 (-0.103%)75m 83,898.89 (-0.081%)90m 83,902.88 (-0.077%)
+VOLUME
+DIRECTION PROBABILITIES
+DOWN / NEUTRAL / UP per horizon
+15m
+36%
+37%
+28%
+NEUTRAL 37%
+30m
+37%
+36%
+27%
+DOWN 37%
+45m
+39%
+34%
+27%
+DOWN 39%
+60m
+39%
+34%
+26%
+DOWN 39%
+75m
+40%
+33%
+27%
+DOWN 40%
+90m
+41%
+33%
+26%
+DOWN 41%
+The three classes are fixed by thresholds taken from the training split, which leaves ~40% of training candles NEUTRAL by construction. So always answering NEUTRAL already scores about 0.52 — any accuracy figure here has to be read against that, not against 0.33.
+ACTIVITY PROBABILITIES
+QUIET / ACTIVE per horizon
+15m
+41%
+59%
+ACTIVE 59% · active if >0.110%
+30m
+36%
+64%
+ACTIVE 64% · active if >0.121%
+60m
+31%
+69%
+ACTIVE 69% · active if >0.127%
+90m
+27%
+73%
+ACTIVE 73% · active if >0.130%
+ACTIVE means the model expects the next 1–6 candles to move more than this market's own trailing 96-candle average. The threshold is the frozen TRAIN median of that ratio, which is why the two classes are 50/50 and why 0.50 is the number to beat— unlike the direction head, whose majority class alone scores ~0.48. Current trailing average: 0.149% per 15m candle.
+LIVE ACTIVITY SCORECARD
+calls made before the outcome existed
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+resolved calls (oldest → newest)
+0%
+25%
+50%
+75%
+100%
+baseline 50%
+Cumulative hit rate over the last 13 resolved activity calls (21 total, 57.1%). The activity classes are balanced by construction, so 0.50 is the number to beat.
+LIVE DIRECTION SCORECARD
+noisy — small sample
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+resolved calls (oldest → newest)
+0%
+25%
+50%
+75%
+100%
+Cumulative hit rate over the last 17 resolved direction calls (29 total, 17.2%). Direction is 3-class and dominated by NEUTRAL, so its baseline is the majority-class rate, not 0.50 — a raw accuracy here is not comparable with the activity line.
+REALISED RETURNS VS WHAT THE MODEL EXPECTS
+training split distribution, frozen NEUTRAL band, today's prediction
+15m
+30m
+45m
+60m
+75m
+90m
+-3.9%
+-1.9%
+0.1%
+3.9%
+0
+8,500
+17,000
+25,500
+34,000
+model -0.103%
+217,243 training candles, 60m horizon, plus 1,272 outside the ±4% window this axis shows. The shaded band is the NEUTRAL region (-0.18% … 0.20%) fixed from the training split. NEUTRAL is 40.3% of it by construction — which is why the direction head's accuracy has to be read against the majority-class rate, not against 50%.
+HELD-OUT PERFORMANCE
+models/eval_summary.json
+METRIC MODEL BASELINE LIFT
+activity accuracy (all horizons) 64.77% 49.77% +15.0pp
+activity macro-F1 64.579% — —
+direction accuracy 52.82% 52.02% +0.8pp
+direction macro-F1 42.370% — —
+ACTIVITY, PER HORIZON ACCURACY BASELINE LIFT
+15m 60.04% 50.39% +9.6pp
+30m 64.00% 49.75% +14.2pp
+60m 67.08% 49.51% +17.6pp
+90m 67.99% 49.42% +18.6pp
+Measured on the held-out TEST split (46,686 samples) — the 15% of history no threshold, scaler or early-stopping decision ever touched. It is the most honest number here, and still an average over nine years of a market that changed a great deal. Generated 2026-09-28T15:43:03.306282+00:00.
+The activity baseline is ~0.50 because the two classes are balanced by construction; the direction baseline is the majority-class rate (~0.52), which is what always predicting NEUTRAL scores. Read the two headlines against their own baselines — the direction lift is a couple of percentage points, the activity lift is much larger. That difference is the honest summary of what this model can and cannot do.
+CALL LOG
+every call, hits and misses alike
+MADE HEAD HZ CALLED CONF PRICE TARGET OUTCOME
+17:32:32 activity 90m ACTIVE 73% 83,967.23 19:00 pending
+17:30:23 activity 90m ACTIVE 72% 83,945.30 19:00 pending
+17:32:32 direction 90m DOWN 41% 83,967.23 19:00 pending
+17:30:23 direction 90m DOWN 41% 83,945.30 19:00 pending
+17:17:31 activity 90m ACTIVE 80% 84,324.61 18:45 pending
+17:15:05 activity 90m ACTIVE 73% 84,212.57 18:45 pending
+17:17:31 direction 90m DOWN 48% 84,324.61 18:45 pending
+17:15:05 direction 90m DOWN 43% 84,212.57 18:45 pending
+17:32:32 direction 75m DOWN 40% 83,967.23 18:45 pending
+17:30:23 direction 75m DOWN 40% 83,945.30 18:45 pending
+17:00:12 activity 90m ACTIVE 71% 83,704.00 18:30 pending
+17:32:32 activity 60m ACTIVE 69% 83,967.23 18:30 pending
+17:30:23 activity 60m ACTIVE 69% 83,945.30 18:30 pending
+17:00:12 direction 90m DOWN 38% 83,704.00 18:30 pending
+17:17:31 direction 75m DOWN 47% 84,324.61 18:30 pending
+17:15:05 direction 75m DOWN 42% 84,212.57 18:30 pending
+17:32:32 direction 60m DOWN 39% 83,967.23 18:30 pending
+17:30:23 direction 60m DOWN 39% 83,945.30 18:30 pending
+16:45:02 activity 90m ACTIVE 72% 83,723.99 18:15 pending
+17:17:31 activity 60m ACTIVE 77% 84,324.61 18:15 pending
+17:15:05 activity 60m ACTIVE 69% 84,212.57 18:15 pending
+16:45:02 direction 90m NEUTRAL 38% 83,723.99 18:15 pending
+17:00:12 direction 75m NEUTRAL 39% 83,704.00 18:15 pending
+17:17:31 direction 60m DOWN 47% 84,324.61 18:15 pending
+17:15:05 direction 60m DOWN 41% 84,212.57 18:15 pending
+17:32:32 direction 45m DOWN 39% 83,967.23 18:15 pending
+17:30:23 direction 45m DOWN 39% 83,945.30 18:15 pending
+16:30:23 activity 90m ACTIVE 80% 84,100.01 18:00 pending
+17:00:12 activity 60m ACTIVE 67% 83,704.00 18:00 pending
+17:32:32 activity 30m ACTIVE 64% 83,967.23 18:00 pending
+17:30:23 activity 30m ACTIVE 64% 83,945.30 18:00 pending
+16:30:23 direction 90m DOWN 47% 84,100.01 18:00 pending
+16:45:02 direction 75m NEUTRAL 39% 83,723.99 18:00 pending
+17:00:12 direction 60m NEUTRAL 40% 83,704.00 18:00 pending
+17:17:31 direction 45m DOWN 46% 84,324.61 18:00 pending
+17:15:05 direction 45m DOWN 40% 84,212.57 18:00 pending
+17:32:32 direction 30m DOWN 37% 83,967.23 18:00 pending
+17:30:23 direction 30m DOWN 37% 83,945.30 18:00 pending
+16:45:02 activity 60m ACTIVE 68% 83,723.99 17:45 pending
+17:17:31 activity 30m ACTIVE 72% 84,324.61 17:45 pending
+17:15:05 activity 30m ACTIVE 65% 84,212.57 17:45 pending
+17:32:32 activity 15m ACTIVE 59% 83,967.23 17:45 pending
+17:30:23 activity 15m ACTIVE 59% 83,945.30 17:45 pending
+16:30:23 direction 75m DOWN 46% 84,100.01 17:45 pending
+16:45:02 direction 60m NEUTRAL 40% 83,723.99 17:45 pending
+17:00:12 direction 45m NEUTRAL 39% 83,704.00 17:45 pending
+17:17:31 direction 30m DOWN 46% 84,324.61 17:45 pending
+17:15:05 direction 30m DOWN 39% 84,212.57 17:45 pending
+17:32:32 direction 15m NEUTRAL 37% 83,967.23 17:45 pending
+17:30:23 direction 15m NEUTRAL 37% 83,945.30 17:45 pending
+16:00:13 activity 90m ACTIVE 75% 83,358.38 17:30 ACTIVE (0.357% vs ref) hit
+16:30:23 activity 60m ACTIVE 77% 84,100.01 17:30 ACTIVE (0.272% vs ref) hit
+17:00:12 activity 30m ACTIVE 63% 83,704.00 17:30 ACTIVE (0.229% vs ref) hit
+17:17:31 activity 15m ACTIVE 65% 84,324.61 17:30 QUIET (0.048% vs ref) miss
+17:15:05 activity 15m ACTIVE 60% 84,212.57 17:30 QUIET (0.048% vs ref) miss
+16:00:13 direction 90m NEUTRAL 39% 83,358.38 17:30 null +0.704% miss
+16:30:23 direction 60m DOWN 46% 84,100.01 17:30 null -0.184% miss
+16:45:02 direction 45m NEUTRAL 40% 83,723.99 17:30 null +0.264% miss
+17:00:12 direction 30m NEUTRAL 41% 83,704.00 17:30 null +0.288% miss
+17:17:31 direction 15m DOWN 44% 84,324.61 17:30 null -0.450% hit
+17:15:05 direction 15m DOWN 37% 84,212.57 17:30 null -0.317% hit
+16:45:02 activity 30m ACTIVE 64% 83,723.99 17:15 ACTIVE (0.337% vs ref) hit
+17:00:12 activity 15m ACTIVE 58% 83,704.00 17:15 QUIET (0.044% vs ref) miss
+16:00:13 direction 75m NEUTRAL 40% 83,358.38 17:15 null +1.025% miss
+16:30:23 direction 45m DOWN 45% 84,100.01 17:15 null +0.134% miss
+16:45:02 direction 30m NEUTRAL 41% 83,723.99 17:15 null +0.584% miss
+17:00:12 direction 15m NEUTRAL 43% 83,704.00 17:15 null +0.608% miss
+16:00:13 activity 60m ACTIVE 71% 83,358.38 17:00 ACTIVE (0.269% vs ref) hit
+16:30:23 activity 30m ACTIVE 71% 84,100.01 17:00 QUIET (0.012% vs ref) miss
+16:45:02 activity 15m ACTIVE 59% 83,723.99 17:00 QUIET (0.023% vs ref) miss
+16:00:13 direction 60m NEUTRAL 41% 83,358.38 17:00 null +0.415% miss
+16:30:23 direction 30m DOWN 45% 84,100.01 17:00 null -0.471% hit
+16:45:02 direction 15m NEUTRAL 42% 83,723.99 17:00 null -0.024% hit
+16:30:23 activity 15m ACTIVE 65% 84,100.01 16:45 QUIET (0.000% vs ref) miss
+16:00:13 direction 45m NEUTRAL 40% 83,358.38 16:45 null +0.439% miss
+16:30:23 direction 15m DOWN 43% 84,100.01 16:45 null -0.447% hit
+16:00:13 activity 30m ACTIVE 65% 83,358.38 16:30 ACTIVE (0.407% vs ref) hit
+16:00:13 direction 30m NEUTRAL 41% 83,358.38 16:30 null +0.890% miss
+16:00:13 activity 15m ACTIVE 61% 83,358.38 16:15 ACTIVE (0.709% vs ref) hit
+16:00:13 direction 15m NEUTRAL 43% 83,358.38 16:15 null +0.784% miss
+100 calls recorded, 50 resolved. Activity baseline: the two activity classes are 50/50 by construction on train, so 0.50 is the number to beat.
+generated 2026-09-28T17:32:32+00:00
+status live
+band = realised train outcomes
+Research viewer, not a trading system. It places no orders, sizes no positions and models no fees, funding or slippage. A directional call is not a profitability claim, and fees alone can exceed a 15-minute edge. The projected curve is the regression head's raw output, and that head is measurably worse than predicting no change at every horizon — which is exactly why the flat baseline is drawn next to it. The live scorecard is a small, noisy sample; the held-out test figures carry statistical weight and a live edge, if any, would show up in the scorecard over weeks. Nothing here is investment advice.

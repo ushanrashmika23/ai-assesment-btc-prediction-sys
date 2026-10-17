@@ -1,0 +1,35 @@
+==============================================================================
+ACCEPTANCE TEST RUN - T01..T13
+==============================================================================
+started        : 2026-10-13T16:03:56+00:00
+command        : pytest tests --collect-only -q
+python         : 3.13.12  (C:\Users\ushan\miniconda3\python.exe)
+project root   : E:\_KDU\Academic\Semester 4\ai\GROUP AS\btc-trend-prediction
+==============================================================================
+
+
+==============================================================================
+ACCEPTANCE SUITE - T01..T13
+==============================================================================
+ID    STATUS       #     sec  TITLE
+------------------------------------------------------------------------------
+T01   NOT IMPLEMENTED   0    0.00  Leakage - corrupt every row after row 2,000, recompu
+T02   NOT IMPLEMENTED   0    0.00  Leakage - corrupt validation/test rows and refit the
+T03   NOT IMPLEMENTED   0    0.00  Windows - every generated window checked for gap cro
+T04   NOT IMPLEMENTED   0    0.00  Split - chronological ordering and purge boundaries 
+T05   NOT IMPLEMENTED   0    0.00  Audit - all 24 existing data-quality/audit checks pa
+T06   NOT IMPLEMENTED   0    0.00  API - snapshot, candles, prediction, track-record an
+T07   NOT IMPLEMENTED   0    0.00  API - candles?limit=5 returns HTTP 422 (minimum limi
+T08   NOT IMPLEMENTED   0    0.00  API - event stream opens and emits parseable snapsho
+T09   NOT IMPLEMENTED   0    0.00  Store - recording the exact same window twice create
+T10   NOT IMPLEMENTED   0    0.00  Store - opened read-only, a write is refused and the
+T11   NOT IMPLEMENTED   0    0.00  Dashboard - every panel renders with real data and w
+T12   NOT IMPLEMENTED   0    0.00  Dashboard - opens on the simple/default view and the
+T13   NOT IMPLEMENTED   0    0.00  Markers - out-of-order calls are sorted, merged and 
+------------------------------------------------------------------------------
+tests: 0  passed 0  failed 0  errors 0  skipped 0
+cases: 0 PASS  0 FAIL  0 BLOCKED  0 PARTIAL
+evidence: 20 screenshot artefact(s) in tests/screenshots, 2 in tests/logs
+==============================================================================
+
+2026-10-13T16:03:58+00:00  wrote E:\_KDU\Academic\Semester 4\ai\GROUP AS\btc-trend-prediction\tests\logs\results.json

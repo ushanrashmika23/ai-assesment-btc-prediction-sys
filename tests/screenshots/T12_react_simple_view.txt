@@ -1,0 +1,54 @@
+captured: 2026-10-07T22:16:49+05:30
+url: http://127.0.0.1:12365
+view: simple (default)
+toggle label: 'Advanced view →'
+rendered text: 2706 chars
+==============================================================================
+BTCUSDT
+15m
+83,967.23
++0.07% on the last candle
+live (pushed)
+candle 17:30:00 UTC
+next candle in 00:00
+model inference_bundle.json
+updated 16:46:48
+Advanced view →
+Will the price move more than usual?
+ACTIVE
+The model expects the next 15 minutes to move more than this market's own average over the last 96 candles (about 24 hours).
+59%confident, and right 12 of 21 times (57%) since the dashboard started.
+Guessing would get you 50%. This is the model's strong question.
+Which way will the price go?
+NEUTRAL
+The model sees no clear direction over the next 15 minutes, moving to about 83,917.73 (-0.059%).
+37%confident, and right 5 of 29 times (17%).
+This question is close to a coin flip. Always answering “no clear direction” already scores about 52%. Treat the activity answer as the model's real output and this one as a weak second opinion.
+THE PRICE, THE MODEL'S GUESS, AND EVERY GUESS BEFORE IT
+last 240 candles (15 minutes each) + the next 90 minutes
+what the price actually did
+what the model expects next
+what the model predicted earlier
+The dots are calls the model already made. Green means it was right, red means it was wrong.
+The solid purple line is every prediction the model made while this dashboard was running, one point per 15 minutes, so you can see whether they have been following the price or only looked good once. 6 points so far, from 1 prediction. Where the line breaks, the dashboard was not running — no prediction was made for that stretch, so none is drawn.
+The candlesticks are real prices. The dashed purple line is the model's guess for the next 90 minutes, and a guess is all it is — it places no orders and predicts no profit.
+FURTHER AHEAD
+Everything above is the next 15 minutes. The model also looks up to 90 minutes ahead — a 15-minute candle move is hard to call, and the longer stretches are the ones it reads better.
+HOW FAR AHEAD MOVE? WHICH WAY? EXPECTED PRICE
+15m ACTIVE NEUTRAL 83,917.73 (-0.059%)
+30m ACTIVE DOWN 83,914.31 (-0.063%)
+45m not asked DOWN 83,892.65 (-0.089%)
+60m ACTIVE DOWN 83,880.92 (-0.103%)
+75m not asked DOWN 83,898.89 (-0.081%)
+90m ACTIVE DOWN 83,902.88 (-0.077%)
+“Not asked” means the model was never trained on the move question at that distance. It is not a missing number.
+TODAY
+PRICE NOW
+83,967.23
+SINCE THE LAST CANDLE
++0.07%
+MODEL EXPECTS IN 90 MINUTES
+83,902.88
+CANDLES THE MODEL READ
+568
+This is a school project, not a trading service. It places no orders and predicts no profit. The move question is right roughly six times out of ten and the direction question is barely better than guessing, so neither is a reason to buy or sell anything. A wrong call is shown next to a right one everywhere in this dashboard, on purpose.
