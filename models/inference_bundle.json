@@ -1,0 +1,258 @@
+{
+  "architecture": "GRU",
+  "trained_by": "src/train.py",
+  "trained_utc": "2026-09-28T15:35:45.040314+00:00",
+  "lookback": 64,
+  "feature_columns": [
+    "return_1",
+    "return_2",
+    "return_4",
+    "return_8",
+    "return_16",
+    "return_32",
+    "volatility_16",
+    "volatility_32",
+    "volatility_96",
+    "volatility_ratio_16_96",
+    "atr_14",
+    "atr_pct_14",
+    "ema20_dist",
+    "ema50_dist",
+    "ema100_dist",
+    "ema20_50_ratio",
+    "ema50_100_ratio",
+    "ema20_slope_4",
+    "rsi_14_norm",
+    "macd_norm",
+    "macd_signal_norm",
+    "macd_hist_norm",
+    "bb_width",
+    "bb_position",
+    "bb_upper_dist",
+    "bb_lower_dist",
+    "volume_change_1",
+    "volume_ratio_16",
+    "volume_ratio_96",
+    "volume_zscore_96",
+    "volume_regime_16_96",
+    "trade_count_change_1",
+    "trade_count_ratio_16",
+    "trade_count_zscore_96",
+    "avg_trade_size_ratio_96",
+    "taker_buy_ratio",
+    "taker_buy_ratio_dev_16",
+    "taker_buy_ratio_zscore_96",
+    "candle_range_pct",
+    "body_ratio",
+    "upper_wick_pct",
+    "lower_wick_pct",
+    "close_pos_range_64",
+    "dist_from_high_96",
+    "dist_from_low_96",
+    "hour_sin",
+    "hour_cos",
+    "dow_sin",
+    "dow_cos"
+  ],
+  "horizons": [
+    "15m",
+    "30m",
+    "45m",
+    "60m",
+    "75m",
+    "90m"
+  ],
+  "horizon_candles": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "direction_classes": {
+    "0": "DOWN",
+    "1": "NEUTRAL",
+    "2": "UP"
+  },
+  "thresholds": {
+    "15m": {
+      "lower_percent": -0.1033275896221131,
+      "upper_percent": 0.10871033480940093,
+      "lower_bps": -10.33275896221131,
+      "upper_bps": 10.871033480940092
+    },
+    "30m": {
+      "lower_percent": -0.13885547000187737,
+      "upper_percent": 0.14909078597779235,
+      "lower_bps": -13.885547000187737,
+      "upper_bps": 14.909078597779235
+    },
+    "45m": {
+      "lower_percent": -0.16336516575084392,
+      "upper_percent": 0.17961724781509128,
+      "lower_bps": -16.336516575084392,
+      "upper_bps": 17.96172478150913
+    },
+    "60m": {
+      "lower_percent": -0.18405568003646122,
+      "upper_percent": 0.20344835966142225,
+      "lower_bps": -18.405568003646124,
+      "upper_bps": 20.344835966142224
+    },
+    "75m": {
+      "lower_percent": -0.2045471703525426,
+      "upper_percent": 0.22877393627373158,
+      "lower_bps": -20.454717035254262,
+      "upper_bps": 22.87739362737316
+    },
+    "90m": {
+      "lower_percent": -0.22195901944001006,
+      "upper_percent": 0.2505260869270208,
+      "lower_bps": -22.195901944001008,
+      "upper_bps": 25.052608692702076
+    }
+  },
+  "target_scaler_mean": [
+    0.001829362307659946,
+    0.0036237520734444004,
+    0.005384391781811707,
+    0.007119684728410682,
+    0.00881207911727373,
+    0.010487479331887655
+  ],
+  "target_scaler_scale": [
+    0.43487647623732484,
+    0.6102572113181528,
+    0.7376573538086508,
+    0.8469706924764396,
+    0.9406111861636842,
+    1.021984486410465
+  ],
+  "train_samples_used": 218515,
+  "train_samples_available": 218515,
+  "subset_used": false,
+  "seed": 42,
+  "regime": {
+    "enabled": true,
+    "question": "will the mean |15m return| over the next h candles exceed its own trailing 24h average?",
+    "horizons": [
+      "15m",
+      "30m",
+      "60m",
+      "90m"
+    ],
+    "horizon_candles": [
+      1,
+      2,
+      4,
+      6
+    ],
+    "reference_window_candles": 96,
+    "ratio_columns": [
+      "regime_ratio_15m",
+      "regime_ratio_30m",
+      "regime_ratio_60m",
+      "regime_ratio_90m"
+    ],
+    "classes": {
+      "0": "QUIET",
+      "1": "ACTIVE"
+    },
+    "thresholds": {
+      "15m": {
+        "ratio_threshold": 0.739017686756132,
+        "quantile": 0.5,
+        "classes": {
+          "0": "QUIET",
+          "1": "ACTIVE"
+        }
+      },
+      "30m": {
+        "ratio_threshold": 0.8089737353105876,
+        "quantile": 0.5,
+        "classes": {
+          "0": "QUIET",
+          "1": "ACTIVE"
+        }
+      },
+      "60m": {
+        "ratio_threshold": 0.8528035829192344,
+        "quantile": 0.5,
+        "classes": {
+          "0": "QUIET",
+          "1": "ACTIVE"
+        }
+      },
+      "90m": {
+        "ratio_threshold": 0.8723865147803103,
+        "quantile": 0.5,
+        "classes": {
+          "0": "QUIET",
+          "1": "ACTIVE"
+        }
+      }
+    },
+    "derived_from": "TRAIN split only (median of the train ratio)",
+    "why": "self-normalising, so the class balance does NOT drift between splits the way the absolute-percent direction thresholds do"
+  },
+  "direction_class_weights": [
+    [
+      1.046742765541249,
+      0.906514468917502,
+      1.046742765541249
+    ],
+    [
+      1.046742765541249,
+      0.906514468917502,
+      1.046742765541249
+    ],
+    [
+      1.046742765541249,
+      0.906514468917502,
+      1.046742765541249
+    ],
+    [
+      1.046742765541249,
+      0.906514468917502,
+      1.046742765541249
+    ],
+    [
+      1.046742765541249,
+      0.906514468917502,
+      1.046742765541249
+    ],
+    [
+      1.046742765541249,
+      0.906514468917502,
+      1.046742765541249
+    ]
+  ],
+  "ensemble": {
+    "members": [
+      {
+        "architecture": "GRU",
+        "seed": 42,
+        "path": "gru_s42_best.keras"
+      },
+      {
+        "architecture": "GRU",
+        "seed": 43,
+        "path": "gru_s43_best.keras"
+      },
+      {
+        "architecture": "GRU",
+        "seed": 44,
+        "path": "gru_s44_best.keras"
+      }
+    ],
+    "combine": "mean of per-member softmax probabilities"
+  },
+  "selection": {
+    "metric": "val_selection_score",
+    "formula": "0.5 * mean val direction macro-F1 + 0.5 * mean val regime accuracy",
+    "validation_scores": {
+      "gru": 0.5504903887395078
+    }
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "model": "gru_multitask.keras",
+  "note": "Calls recorded live by src/dashboard.py. Realized values are measured from actual Binance candles using the frozen train-only thresholds - never simulated, never back-filled.",
+  "updated_utc": "2026-09-27T08:03:55.891051+00:00",
+  "calls": [
+    {
+      "made_at": "2026-09-27T08:03:55+00:00",
+      "model": "gru_multitask.keras",
+      "horizon": "15m",
+      "candles": 1,
+      "target_ts": 1790496900000,
+      "predicted": 1,
+      "confidence": 0.7534790635108948,
+      "expected_pct": -0.0335271954536438,
+      "price_at_call": 84815.92,
+      "realized_pct": null,
+      "realized": null
+    },
+    {
+      "made_at": "2026-09-27T08:03:55+00:00",
+      "model": "gru_multitask.keras",
+      "horizon": "30m",
+      "candles": 2,
+      "target_ts": 1790497800000,
+      "predicted": 1,
+      "confidence": 0.7484171390533447,
+      "expected_pct": -0.001036602072417736,
+      "price_at_call": 84815.92,
+      "realized_pct": null,
+      "realized": null
+    },
+    {
+      "made_at": "2026-09-27T08:03:55+00:00",
+      "model": "gru_multitask.keras",
+      "horizon": "45m",
+      "candles": 3,
+      "target_ts": 1790498700000,
+      "predicted": 1,
+      "confidence": 0.722525417804718,
+      "expected_pct": 0.03718941658735275,
+      "price_at_call": 84815.92,
+      "realized_pct": null,
+      "realized": null
+    },
+    {
+      "made_at": "2026-09-27T08:03:55+00:00",
+      "model": "gru_multitask.keras",
+      "horizon": "60m",
+      "candles": 4,
+      "target_ts": 1790499600000,
+      "predicted": 1,
+      "confidence": 0.7420057058334351,
+      "expected_pct": -0.010578637942671776,
+      "price_at_call": 84815.92,
+      "realized_pct": null,
+      "realized": null
+    },
+    {
+      "made_at": "2026-09-27T08:03:55+00:00",
+      "model": "gru_multitask.keras",
+      "horizon": "75m",
+      "candles": 5,
+      "target_ts": 1790500500000,
+      "predicted": 1,
+      "confidence": 0.744728147983551,
+      "expected_pct": -0.0006752554327249527,
+      "price_at_call": 84815.92,
+      "realized_pct": null,
+      "realized": null
+    },
+    {
+      "made_at": "2026-09-27T08:03:55+00:00",
+      "model": "gru_multitask.keras",
+      "horizon": "90m",
+      "candles": 6,
+      "target_ts": 1790501400000,
+      "predicted": 1,
+      "confidence": 0.734073281288147,
+      "expected_pct": -0.002833085134625435,
+      "price_at_call": 84815.92,
+      "realized_pct": null,
+      "realized": null
+    }
+  ]
+}
